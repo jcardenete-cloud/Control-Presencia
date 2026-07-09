@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: horario-app
+    restart: always
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - DB_HOST=192.168.145.122
+      - DB_USER=root
+      - DB_PASSWORD=aamariadb
+      - DB_NAME=horario_db
+    volumes:
+      - horario_data:/var/lib/mysql
+    networks:
+      - horario-network
+
+networks:
+  horario-network:
+    driver: bridge
+
+volumes:
+  horario_data:
+
+

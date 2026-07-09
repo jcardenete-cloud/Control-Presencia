@@ -4,8 +4,10 @@ import bcrypt from 'bcryptjs';
 const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL || import.meta.env.SUPABASE_URL || '').trim();
 const supabaseSecretKey = (import.meta.env.VITE_SUPABASE_SECRET_KEY || import.meta.env.SUPABASE_SECRET_KEY || '').trim();
 
-export const supabase = supabaseUrl && supabaseSecretKey && supabaseSecretKey !== 'your_supabase_secret_key'
-  ? createClient(supabaseUrl, supabaseSecretKey, {
+const normalizedSecretKey = supabaseSecretKey.replace(/^['"]|['"]$/g, '').trim();
+
+export const supabase = supabaseUrl && normalizedSecretKey && normalizedSecretKey !== 'your_supabase_secret_key'
+  ? createClient(supabaseUrl, normalizedSecretKey, {
       auth: {
         persistSession: false,
         autoRefreshToken: false
@@ -17,7 +19,7 @@ export const isSupabaseConfigured = Boolean(supabase);
 
 function ensureSupabase() {
   if (!supabase) {
-    throw new Error('Faltan las variables VITE_SUPABASE_URL y VITE_SUPABASE_SECRET_KEY');
+    throw new Error('No se ha configurado Supabase. Añade VITE_SUPABASE_URL y VITE_SUPABASE_SECRET_KEY en GitHub Actions y en la build.');
   }
   return supabase;
 }

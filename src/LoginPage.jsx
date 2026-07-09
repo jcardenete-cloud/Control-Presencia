@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Fingerprint, LogIn, AlertCircle } from 'lucide-react';
+import { loginUser } from './lib/supabaseApi';
 
 export default function LoginPage({ onLogin }) {
     const [nombre, setNombre] = useState('');
@@ -12,20 +13,14 @@ export default function LoginPage({ onLogin }) {
         setError(null);
         setLoading(true);
         try {
-            const res = await fetch('/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nombre, password })
-            });
-            const data = await res.json();
-            if (res.ok && data.success) {
+            const data = await loginUser(nombre, password);
+            if (data.success) {
                 onLogin(data.user);
             } else {
                 setError({ message: data.error || 'Credenciales inválidas', attempted: data.attempted || null });
             }
         } catch (err) {
-            // If fetch fails (server unreachable), still show entered usuario/contraseña if useful
-            setError({ message: 'Error al conectar con el servidor', attempted: { nombre, password, host: null } });
+            setError({ message: err.message || 'Error al conectar con Supabase', attempted: { nombre, password, host: null } });
         } finally {
             setLoading(false);
         }

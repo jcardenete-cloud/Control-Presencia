@@ -36,8 +36,16 @@ import {
   getDailyGoalForDate,
   isSummerDate
 } from './utils';
-
-const API_URL = '/api';
+import {
+  createFichaje,
+  deleteFichaje,
+  getConfig,
+  getFichajes,
+  getWeeklyLeftovers,
+  saveConfig,
+  saveWeeklyLeftover,
+  updateFichaje
+} from './lib/supabaseApi';
 
 // Isolated clock component — updates every 1s without re-rendering the entire App
 function LiveClock({ activeFichaje }) {
@@ -155,19 +163,11 @@ function App() {
   const fetchData = async () => {
     try {
       setError(null);
-      const [fichajesRes, configRes, weeklyLeftoversRes] = await Promise.all([
-        fetch(`${API_URL}/fichajes`),
-        fetch(`${API_URL}/config`),
-        fetch(`${API_URL}/weekly_leftovers`)
+      const [fichajesData, configData, weeklyLeftoversData] = await Promise.all([
+        getFichajes(),
+        getConfig(),
+        getWeeklyLeftovers()
       ]);
-
-      if (!fichajesRes.ok || !configRes.ok) {
-        throw new Error(`Server returned error: ${fichajesRes.status} / ${configRes.status}`);
-      }
-
-      const fichajesData = await fichajesRes.json();
-      const configData = await configRes.json();
-      const weeklyLeftoversData = weeklyLeftoversRes.ok ? await weeklyLeftoversRes.json() : [];
 
       setFichajes(Array.isArray(fichajesData) ? fichajesData : []);
       setWeeklyLeftovers(Array.isArray(weeklyLeftoversData) ? weeklyLeftoversData : []);
@@ -182,12 +182,11 @@ function App() {
       const mergedConfig = { ...defaultConfig, ...configData };
       setConfig(mergedConfig);
 
-      // Check for active fichaje (one with no end_time)
       const active = Array.isArray(fichajesData) ? fichajesData.find(f => !f.end_time) : null;
       setActiveFichaje(active);
     } catch (err) {
-      console.error("Error fetching data:", err);
-      setError("No se pudo conectar con el servidor. Asegúrate de que el backend esté corriendo.");
+      console.error('Error fetching data:', err);
+      setError('No se pudo conectar con Supabase. Revisa las variables VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY.');
     }
   };
 
@@ -208,34 +207,24 @@ function App() {
 
     if (isExit && activeFichaje) {
       try {
-        const res = await fetch(`${API_URL}/fichajes/${activeFichaje.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ end_time: localIsoString })
-        });
-        if (!res.ok) throw new Error("Error en la respuesta del servidor");
+        await updateFichaje(activeFichaje.id, { end_time: localIsoString });
         await fetchData();
         setShowManualEntry(false);
       } catch (err) {
-        setError("Error al finalizar fichaje: " + err.message);
+        setError('Error al finalizar fichaje: ' + err.message);
       }
     } else if (!isExit) {
       try {
-        const res = await fetch(`${API_URL}/fichajes`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            date: dateStr,
-            start_time: localIsoString,
-            end_time: null,
-            manual: true
-          })
+        await createFichaje({
+          date: dateStr,
+          start_time: localIsoString,
+          end_time: null,
+          manual: true
         });
-        if (!res.ok) throw new Error("Error en la respuesta del servidor");
         await fetchData();
         setShowManualEntry(false);
       } catch (err) {
-        setError("Error al registrar entrada: " + err.message);
+        setError('Error al registrar entrada: ' + err.message);
       }
     }
   };
@@ -244,10 +233,10 @@ function App() {
   const handleDelete = async (id) => {
     if (!confirm('¿Estás seguro de que quieres eliminar este registro?')) return;
     try {
-      await fetch(`${API_URL}/fichajes/${id}`, { method: 'DELETE' });
+      await deleteFichaje(id);
       await fetchData();
     } catch (err) {
-      console.error("Error deleting fichaje:", err);
+      console.error('Error deleting fichaje:', err);
     }
   };
 
@@ -260,16 +249,10 @@ function App() {
       const startDateTime = `${datePart}T${editStartTime}:00`;
       const endDateTime = editEndTime ? `${datePart}T${editEndTime}:00` : null;
 
-      const res = await fetch(`${API_URL}/fichajes/${editingFichaje.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          start_time: startDateTime,
-          end_time: endDateTime
-        })
+      await updateFichaje(editingFichaje.id, {
+        start_time: startDateTime,
+        end_time: endDateTime
       });
-
-      if (!res.ok) throw new Error("Error al actualizar el fichaje");
 
       await fetchData();
       setEditingFichaje(null);
@@ -280,22 +263,12 @@ function App() {
 
   const updateConfig = async (newConfig) => {
     try {
-      const res = await fetch(`${API_URL}/config`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newConfig)
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || "Error al guardar en el servidor");
-      }
-
+      await saveConfig(newConfig);
       await fetchData();
       setShowSettings(false);
-      alert("Configuración guardada correctamente");
+      alert('Configuración guardada correctamente');
     } catch (err) {
-      setError("No se pudo guardar la configuración: " + err.message);
+      setError('No se pudo guardar la configuración: ' + err.message);
     }
   };
 
@@ -386,12 +359,7 @@ function App() {
     )) return;
 
     try {
-      // Save leftover for this week
-      await fetch(`${API_URL}/weekly_leftovers`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ week_start: weekMondayStr, leftover: roundedHours })
-      });
+      await saveWeeklyLeftover({ week_start: weekMondayStr, leftover: roundedHours });
 
       // Also update global accumulator for reference
       const rawBalance = (weekBalanceMs / (3600 * 1000));

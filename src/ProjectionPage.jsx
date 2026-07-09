@@ -24,6 +24,15 @@ import {
     hhmmToDecimal,
     decimalToHHMM
 } from './utils';
+import {
+    clearPlannedShifts,
+    createPlannedShift,
+    deletePlannedShift,
+    deleteProjectionDays,
+    getPlannedShifts,
+    getProjectionDays,
+    saveProjectionDay
+} from './lib/supabaseApi';
 
 const ProjectionPage = ({ fichajes, config, currentTime = new Date(), weeklyLeftovers = [] }) => {
     const [selectedWeek, setSelectedWeek] = useState(new Date());
@@ -34,23 +43,16 @@ const ProjectionPage = ({ fichajes, config, currentTime = new Date(), weeklyLeft
 
     const [newShift, setNewShift] = useState({ date: '', start: '08:00', end: '15:00' });
 
-    const API_URL = '/api';
-
-    // Load data from MariaDB
+    // Load data from Supabase
     useEffect(() => {
         const loadData = async () => {
             try {
-                const [projRes, shiftsRes] = await Promise.all([
-                    fetch(`${API_URL}/projection_days`),
-                    fetch(`${API_URL}/planned_shifts`)
+                const [projData, shiftsData] = await Promise.all([
+                    getProjectionDays(),
+                    getPlannedShifts()
                 ]);
-
-                if (projRes.ok && shiftsRes.ok) {
-                    const projData = await projRes.json();
-                    const shiftsData = await shiftsRes.json();
-                    setProjections(projData);
-                    setPlannedShifts(shiftsData);
-                }
+                setProjections(projData);
+                setPlannedShifts(shiftsData);
             } catch (e) {
                 console.error("Error loading data from DB", e);
             } finally {
@@ -58,18 +60,14 @@ const ProjectionPage = ({ fichajes, config, currentTime = new Date(), weeklyLeft
             }
         };
         loadData();
-    }, [API_URL]);
+    }, []);
 
     const handleProjectionChange = async (dateStr, value) => {
         const newProjections = { ...projections, [dateStr]: value };
         setProjections(newProjections);
 
         try {
-            await fetch(`${API_URL}/projection_days`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ date: dateStr, hours: value })
-            });
+            await saveProjectionDay({ date: dateStr, hours: value });
         } catch (e) {
             console.error("Error saving projection day to DB", e);
         }
@@ -80,27 +78,19 @@ const ProjectionPage = ({ fichajes, config, currentTime = new Date(), weeklyLeft
         if (!newShift.date) return;
 
         try {
-            const res = await fetch(`${API_URL}/planned_shifts`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    date: newShift.date,
-                    start_time: newShift.start,
-                    end_time: newShift.end
-                })
+            const data = await createPlannedShift({
+                date: newShift.date,
+                start_time: newShift.start,
+                end_time: newShift.end
             });
-            if (res.ok) {
-                const { id } = await res.json();
-                const shiftToAdd = {
-                    id,
-                    date: newShift.date,
-                    start_time: newShift.start,
-                    end_time: newShift.end
-                };
-                setPlannedShifts([...plannedShifts, shiftToAdd]);
-                // Automatically expand the day to show the new shift
-                setExpandedDays(prev => ({ ...prev, [newShift.date]: true }));
-            }
+            const shiftToAdd = {
+                id: data.id,
+                date: newShift.date,
+                start_time: newShift.start,
+                end_time: newShift.end
+            };
+            setPlannedShifts([...plannedShifts, shiftToAdd]);
+            setExpandedDays(prev => ({ ...prev, [newShift.date]: true }));
         } catch (e) {
             console.error("Error adding shift", e);
         }
@@ -108,10 +98,8 @@ const ProjectionPage = ({ fichajes, config, currentTime = new Date(), weeklyLeft
 
     const deletePlannedShift = async (id) => {
         try {
-            const res = await fetch(`${API_URL}/planned_shifts/${id}`, { method: 'DELETE' });
-            if (res.ok) {
-                setPlannedShifts(plannedShifts.filter(s => s.id !== id));
-            }
+            await deletePlannedShift(id);
+            setPlannedShifts(plannedShifts.filter(s => s.id !== id));
         } catch (e) {
             console.error("Error deleting shift", e);
         }
@@ -128,8 +116,8 @@ const ProjectionPage = ({ fichajes, config, currentTime = new Date(), weeklyLeft
         setPlannedShifts([]);
         try {
             await Promise.all([
-                fetch(`${API_URL}/projection_days`, { method: 'DELETE' }),
-                fetch(`${API_URL}/planned_shifts_all`, { method: 'DELETE' })
+                deleteProjectionDays(),
+                clearPlannedShifts()
             ]);
         } catch (e) {
             console.error("Error clearing data", e);
@@ -160,26 +148,19 @@ const ProjectionPage = ({ fichajes, config, currentTime = new Date(), weeklyLeft
                 const targetDay = currentWeekDays.find(d => d.getDay() === dayIndex);
                 const targetDateStr = format(targetDay, 'yyyy-MM-dd');
 
-                return fetch(`${API_URL}/planned_shifts`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        date: targetDateStr,
-                        start_time: shift.start_time,
-                        end_time: shift.end_time
-                    })
+                return createPlannedShift({
+                    date: targetDateStr,
+                    start_time: shift.start_time,
+                    end_time: shift.end_time
                 });
             });
 
             await Promise.all(promises);
 
             // Reload shifts
-            const res = await fetch(`${API_URL}/planned_shifts`);
-            if (res.ok) {
-                const data = await res.json();
-                setPlannedShifts(data);
-                alert("Turnos copiados correctamente.");
-            }
+            const data = await getPlannedShifts();
+            setPlannedShifts(data);
+            alert("Turnos copiados correctamente.");
         } catch (e) {
             console.error("Error copying shifts", e);
             alert("Error al copiar los turnos.");

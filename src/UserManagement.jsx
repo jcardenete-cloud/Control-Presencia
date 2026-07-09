@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, X, Shield, ShieldOff, Check } from 'lucide-react';
+import { createUsuario, deleteUsuario, getUsuarios, updateUsuario } from './lib/supabaseApi';
 
 export default function UserManagement({ setGlobalError }) {
     const [usuarios, setUsuarios] = useState([]);
@@ -15,9 +16,7 @@ export default function UserManagement({ setGlobalError }) {
 
     const fetchUsuarios = async () => {
         try {
-            const res = await fetch('/api/usuarios');
-            if (!res.ok) throw new Error("Error al obtener usuarios");
-            const data = await res.json();
+            const data = await getUsuarios();
             setUsuarios(data);
         } catch (err) {
             setGlobalError(err.message);
@@ -40,25 +39,9 @@ export default function UserManagement({ setGlobalError }) {
         e.preventDefault();
         try {
             if (editingUser) {
-                const res = await fetch(`/api/usuarios/${editingUser.id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formData)
-                });
-                if (!res.ok) {
-                    const errorData = await res.json();
-                    throw new Error(errorData.error || "Error al actualizar");
-                }
+                await updateUsuario(editingUser.id, formData);
             } else {
-                const res = await fetch('/api/usuarios', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formData)
-                });
-                if (!res.ok) {
-                    const errorData = await res.json();
-                    throw new Error(errorData.error || "Error al crear");
-                }
+                await createUsuario(formData);
             }
             setShowModal(false);
             setEditingUser(null);
@@ -75,11 +58,7 @@ export default function UserManagement({ setGlobalError }) {
         }
         if (!confirm(`¿Estás seguro de que quieres eliminar a ${nombre}?`)) return;
         try {
-            const res = await fetch(`/api/usuarios/${id}`, { method: 'DELETE' });
-            if (!res.ok) {
-                const errorData = await res.json();
-                throw new Error(errorData.error || "Error al eliminar");
-            }
+            await deleteUsuario(id);
             fetchUsuarios();
         } catch (err) {
             alert(err.message);

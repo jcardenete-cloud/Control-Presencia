@@ -19,7 +19,7 @@ services:
       - horario-network
 
 networks:
-  horario-network:
+  horario-network: 
     driver: bridge
 
 volumes:

@@ -39,15 +39,6 @@ CREATE TABLE IF NOT EXISTS jcf.weekly_leftovers (
     leftover NUMERIC(5,2) DEFAULT 0.0
 );
 
-CREATE TABLE IF NOT EXISTS jcf.usuarios (
-    id BIGSERIAL PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL,
-    apellido1 VARCHAR(100) NOT NULL,
-    apellido2 VARCHAR(100),
-    password VARCHAR(255) NOT NULL,
-    is_admin BOOLEAN DEFAULT FALSE
-);
-
 INSERT INTO jcf.config (
     id,
     hours_per_week,
@@ -65,20 +56,3 @@ VALUES (
     0.0
 )
 ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO jcf.usuarios (
-    nombre,
-    apellido1,
-    apellido2,
-    password,
-    is_admin
-)
-SELECT
-    'admin',
-    '',
-    '',
-    '$2a$12$8p8f2fPsJNX2QmG2JfY8y.7Jb7UQgaHqk2dQxv8M5jO3L5A7RIBpG',
-    TRUE
-WHERE NOT EXISTS (
-    SELECT 1 FROM jcf.usuarios WHERE nombre = 'admin'
-);

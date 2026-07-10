@@ -361,17 +361,15 @@ app.post('/api/login', async (req, res) => {
         }
     } catch (err) {
         console.error("POST /api/login Error:", err);
-        const attempted = { host: dbConfig.host, nombre };
-        if (process.env.NODE_ENV !== 'production') attempted.password = password;
-        res.status(500).json({ error: err.message, attempted });
+        res.status(500).json({ error: "Error interno del servidor" });
     } finally {
         if (conn) conn.release();
     }
 });
 
-// DB info endpoint (returns DB host/user — no password)
+// DB info endpoint disabled for security
 app.get('/api/dbinfo', (req, res) => {
-    res.json({ host: dbConfig.host, user: dbConfig.user });
+    res.status(403).json({ error: "Acceso denegado por políticas de seguridad" });
 });
 
 // User Management Endpoints

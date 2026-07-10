@@ -378,10 +378,12 @@ function App() {
   };
 
   const selectedDateTodayStr = format(selectedDateForTodayTab, 'yyyy-MM-dd');
-  const todayFichajes = fichajes.filter(f => {
-    const fDate = typeof f.date === 'string' ? f.date.split('T')[0] : format(new Date(f.date), 'yyyy-MM-dd');
-    return fDate === selectedDateTodayStr;
-  });
+  const todayFichajes = fichajes
+    .filter(f => {
+      const fDate = typeof f.date === 'string' ? f.date.split('T')[0] : format(new Date(f.date), 'yyyy-MM-dd');
+      return fDate === selectedDateTodayStr;
+    })
+    .sort((a, b) => new Date(a.start_time) - new Date(b.start_time));
 
   const weeklyHistoryDays = getWeekDays(selectedWeekDate);
   const weekRangeLabel = `${format(weeklyHistoryDays[0], "d 'de' MMMM", { locale: es })} - ${format(weeklyHistoryDays[4], "d 'de' MMMM", { locale: es })}`;

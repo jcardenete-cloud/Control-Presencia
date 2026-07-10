@@ -16,7 +16,7 @@
   --success-bg: rgba(133, 153, 0, 0.1);
   --danger-bg: rgba(220, 50, 47, 0.1);
   --warning-bg: rgba(181, 137, 0, 0.1);
-  --font-main: 'Google Sans Flex', 'Mulish', 'Questrial', sans-serif;
+  --font-main: 'Questrial', sans-serif;
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -83,19 +83,19 @@ body {
 }
 
 body.theme-solarized {
-  background-image: 
+  background-image:
     linear-gradient(rgba(253, 246, 227, 0.2), rgba(253, 246, 227, 0.2)),
     url('./assets/background-solarized.png');
 }
 
 body.theme-onenote {
-  background-image: 
+  background-image:
     linear-gradient(rgba(243, 242, 241, 0.3), rgba(243, 242, 241, 0.3)),
     url('./assets/background-onenote.png');
 }
 
 body.theme-outlook {
-  background-image: 
+  background-image:
     linear-gradient(rgba(243, 242, 241, 0.3), rgba(243, 242, 241, 0.3)),
     url('./assets/background-outlook.png');
 }

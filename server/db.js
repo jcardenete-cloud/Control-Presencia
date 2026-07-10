@@ -19,7 +19,10 @@ export function getSupabaseClient() {
         throw new Error('Configura SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY o SUPABASE_ANON_KEY.');
     }
     if (!client) {
-        client = createClient(supabaseUrl, supabaseKey, { auth: { persistSession: false, autoRefreshToken: false } });
+        client = createClient(supabaseUrl, supabaseKey, {
+            db: { schema: 'jcf' },
+            auth: { persistSession: false, autoRefreshToken: false }
+        });
     }
     return client;
 }

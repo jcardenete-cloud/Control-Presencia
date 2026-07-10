@@ -8,6 +8,7 @@ const normalizedSecretKey = supabaseSecretKey.replace(/^['"]|['"]$/g, '').trim()
 
 export const supabase = supabaseUrl && normalizedSecretKey && normalizedSecretKey !== 'your_supabase_secret_key'
   ? createClient(supabaseUrl, normalizedSecretKey, {
+      db: { schema: 'jcf' },
       auth: {
         persistSession: false,
         autoRefreshToken: false

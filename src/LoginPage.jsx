@@ -3,7 +3,7 @@ import { Fingerprint, LogIn, AlertCircle } from 'lucide-react';
 import { loginUser } from './lib/supabaseApi';
 
 export default function LoginPage({ onLogin }) {
-    const [nombre, setNombre] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -13,14 +13,14 @@ export default function LoginPage({ onLogin }) {
         setError(null);
         setLoading(true);
         try {
-            const data = await loginUser(nombre, password);
+            const data = await loginUser(email, password);
             if (data.success) {
                 onLogin(data.user);
             } else {
-                setError({ message: data.error || 'Credenciales inválidas', attempted: data.attempted || null });
+                setError(data.error || 'Credenciales inválidas');
             }
         } catch (err) {
-            setError({ message: err.message || 'Error al conectar con Supabase', attempted: { nombre, password, host: null } });
+            setError(err.message || 'Error al conectar con Supabase');
         } finally {
             setLoading(false);
         }
@@ -39,28 +39,21 @@ export default function LoginPage({ onLogin }) {
                     <div style={{ width: '100%', padding: '0.75rem', background: 'var(--danger-bg)', border: '1px solid var(--danger)', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--danger)', fontSize: '0.9rem' }}>
                         <AlertCircle size={18} />
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            <span>{typeof error === 'string' ? error : (error && error.message)}</span>
-                            {error && error.attempted && (
-                                <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                                    <div><strong>Usuario:</strong> {error.attempted.nombre || nombre}</div>
-                                    <div><strong>Contraseña:</strong> {error.attempted.password || password}</div>
-                                    <div><strong>Host:</strong> {error.attempted.host || 'desconocido'}</div>
-                                </div>
-                            )}
+                            <span>{error}</span>
                         </div>
                     </div>
                 )}
 
                 <form onSubmit={handleSubmit} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                     <div>
-                        <label className="stat-label" style={{ display: 'block', marginBottom: '0.5rem' }}>Usuario</label>
+                        <label className="stat-label" style={{ display: 'block', marginBottom: '0.5rem' }}>Email</label>
                         <input
-                            type="text"
+                            type="email"
                             required
                             className="input-field"
-                            placeholder="Introduce tu nombre de usuario"
-                            value={nombre}
-                            onChange={(e) => setNombre(e.target.value)}
+                            placeholder="Introduce tu email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                         />
                     </div>
                     <div>

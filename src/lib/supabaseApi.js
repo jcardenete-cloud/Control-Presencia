@@ -10,8 +10,8 @@ export const supabase = supabaseUrl && normalizedSecretKey && normalizedSecretKe
   ? createClient(supabaseUrl, normalizedSecretKey, {
       db: { schema: 'jcf' },
       auth: {
-        persistSession: false,
-        autoRefreshToken: false
+        persistSession: true,
+        autoRefreshToken: true
       }
     })
   : null;
@@ -177,35 +177,31 @@ export async function clearPlannedShifts() {
   return deleteRows('planned_shifts');
 }
 
-export async function loginUser(nombre, password) {
-  console.log('Intentando login para:', nombre);
-  const user = await readSingleRow('usuarios', {
-    eq: { column: 'nombre', value: nombre }
+export async function loginUser(email, password) {
+  console.log('Intentando login para:', email);
+  const { data, error } = await ensureSupabase().auth.signInWithPassword({
+    email,
+    password
   });
 
-  console.log('Resultado de búsqueda de usuario:', user);
-
-  if (!user) {
-    console.log('El usuario no existe en la base de datos.');
-    throw new Error('Credenciales inválidas');
-  }
-
-  const passwordValid = await bcrypt.compare(password, user.password);
-  console.log('¿Contraseña válida?:', passwordValid);
-
-  if (!passwordValid) {
-    console.log('La contraseña no coincide con el hash.');
-    throw new Error('Credenciales inválidas');
+  if (error) {
+    console.error('Error en Supabase auth.signInWithPassword:', error);
+    throw new Error(error.message || 'Credenciales inválidas');
   }
 
   return {
     success: true,
     user: {
-      id: user.id,
-      nombre: user.nombre,
-      is_admin: user.is_admin
+      id: data.user.id,
+      nombre: data.user.email,
+      is_admin: true // Como es el único usuario con acceso, le otorgamos privilegios de admin
     }
   };
+}
+
+export async function logoutUser() {
+  const { error } = await ensureSupabase().auth.signOut();
+  if (error) throw error;
 }
 
 export async function getUsuarios() {

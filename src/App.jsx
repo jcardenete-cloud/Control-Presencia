@@ -44,7 +44,9 @@ import {
   getWeeklyLeftovers,
   saveConfig,
   saveWeeklyLeftover,
-  updateFichaje
+  updateFichaje,
+  logoutUser,
+  supabase
 } from './lib/supabaseApi';
 
 // Isolated clock component — updates every 1s without re-rendering the entire App
@@ -125,6 +127,51 @@ function App() {
     localStorage.setItem('theme', theme);
   }, [theme]);
 
+  // handleLogout function to clean Supabase session and state
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+    } catch (err) {
+      console.error('Error al cerrar sesión:', err);
+    }
+    setLoggedInUser(null);
+  };
+
+  // Sync Supabase Auth session with loggedInUser
+  useEffect(() => {
+    if (!supabase) return;
+
+    // Check current session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setLoggedInUser({
+          id: session.user.id,
+          nombre: session.user.email,
+          is_admin: true
+        });
+      } else {
+        setLoggedInUser(null);
+      }
+    });
+
+    // Listen to auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        setLoggedInUser({
+          id: session.user.id,
+          nombre: session.user.email,
+          is_admin: true
+        });
+      } else {
+        setLoggedInUser(null);
+      }
+    });
+
+    return () => {
+      subscription?.unsubscribe();
+    };
+  }, []);
+
   // Persist loggedInUser state
   useEffect(() => {
     if (loggedInUser) {
@@ -144,7 +191,7 @@ function App() {
     const resetTimer = () => {
       if (timeoutId) clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
-        setLoggedInUser(null);
+        handleLogout();
       }, 60 * 60 * 1000); // 60 minutes
     };
 
@@ -191,7 +238,12 @@ function App() {
   };
 
   useEffect(() => {
-    fetchData();
+    if (loggedInUser) {
+      fetchData();
+    }
+  }, [loggedInUser]);
+
+  useEffect(() => {
     // Update calculation time every 30s (display clock is handled by LiveClock component)
     const timer = setInterval(() => setCurrentTime(new Date()), 30000);
     return () => clearInterval(timer);
@@ -542,7 +594,7 @@ function App() {
             <Settings size={18} />
             <span>Configuración</span>
           </button>
-          <button className="sidebar-action-btn" onClick={() => setLoggedInUser(null)} style={{ color: 'var(--danger)' }}>
+          <button className="sidebar-action-btn" onClick={handleLogout} style={{ color: 'var(--danger)' }}>
             <LogOut size={18} />
             <span>Cerrar Sesión</span>
           </button>

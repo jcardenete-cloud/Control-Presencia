@@ -26,7 +26,6 @@ import { format, differenceInMilliseconds, addDays, subDays, startOfWeek } from 
 import { es } from 'date-fns/locale';
 import ProjectionPage from './ProjectionPage';
 import LoginPage from './LoginPage';
-import UserManagement from './UserManagement';
 import {
   msToTime,
   decimalToHHMM,
@@ -551,15 +550,7 @@ function App() {
             <User size={20} />
             <span>Mis Datos Tragsanet</span>
           </button>
-          {(loggedInUser?.is_admin === 1 || loggedInUser?.is_admin === true) && (
-            <button
-              className={`sidebar-item ${activeTab === 'users' ? 'active' : ''}`}
-              onClick={() => setActiveTab('users')}
-            >
-              <Users size={20} />
-              <span>Usuarios</span>
-            </button>
-          )}
+
         </div>
 
         <div className="sidebar-footer">
@@ -996,9 +987,6 @@ function App() {
           </div>
         )}
 
-        {activeTab === 'users' && (
-          <UserManagement setGlobalError={setError} />
-        )}
 
         {/* Modals */}
         {showManualEntry && (

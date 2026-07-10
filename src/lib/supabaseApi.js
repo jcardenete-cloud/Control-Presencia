@@ -1,5 +1,4 @@
 import { createClient } from '@supabase/supabase-js';
-import bcrypt from 'bcryptjs';
 
 const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL || import.meta.env.SUPABASE_URL || '').trim();
 const supabaseSecretKey = (import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_SECRET_KEY || import.meta.env.SUPABASE_ANON_KEY || import.meta.env.SUPABASE_SECRET_KEY || '').trim();
@@ -204,31 +203,3 @@ export async function logoutUser() {
   if (error) throw error;
 }
 
-export async function getUsuarios() {
-  return readRows('usuarios', {
-    select: 'id,nombre,apellido1,apellido2,is_admin',
-    orderBy: { column: 'id', ascending: true }
-  });
-}
-
-export async function createUsuario(payload) {
-  const hashedPassword = await bcrypt.hash(payload.password, 12);
-  return insertRow('usuarios', {
-    ...payload,
-    password: hashedPassword,
-    is_admin: Boolean(payload.is_admin)
-  });
-}
-
-export async function updateUsuario(id, payload) {
-  const updates = { ...payload, is_admin: Boolean(payload.is_admin) };
-  if (payload.password) {
-    updates.password = await bcrypt.hash(payload.password, 12);
-  }
-
-  return updateRow('usuarios', id, updates);
-}
-
-export async function deleteUsuario(id) {
-  return deleteRows('usuarios', { eq: { column: 'id', value: id } });
-}

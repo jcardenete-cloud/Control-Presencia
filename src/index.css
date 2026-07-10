@@ -16,7 +16,7 @@
   --success-bg: rgba(133, 153, 0, 0.1);
   --danger-bg: rgba(220, 50, 47, 0.1);
   --warning-bg: rgba(181, 137, 0, 0.1);
-  --font-main: 'Questrial' sans-serif;
+  --font-main: 'Questrial', sans-serif;
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 

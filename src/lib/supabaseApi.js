@@ -178,16 +178,23 @@ export async function clearPlannedShifts() {
 }
 
 export async function loginUser(nombre, password) {
+  console.log('Intentando login para:', nombre);
   const user = await readSingleRow('usuarios', {
     eq: { column: 'nombre', value: nombre }
   });
 
+  console.log('Resultado de búsqueda de usuario:', user);
+
   if (!user) {
+    console.log('El usuario no existe en la base de datos.');
     throw new Error('Credenciales inválidas');
   }
 
   const passwordValid = await bcrypt.compare(password, user.password);
+  console.log('¿Contraseña válida?:', passwordValid);
+
   if (!passwordValid) {
+    console.log('La contraseña no coincide con el hash.');
     throw new Error('Credenciales inválidas');
   }
 

@@ -922,7 +922,7 @@ function App() {
           <div className="animate-fade-in" style={{ width: '88%', maxWidth: '1100px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
               <a
-                href="https://extranet.tragsa.es/f5-w-68747470733a2f2f65787472616e65742e7472616773612e6573$$/TRAGSANET/SistemasInformacion/Aplicacion/Utilidades/DatosUsuario.aspx?Tab=4"
+                href="https://extranet.tragsa.es/TRAGSANET/SistemasInformacion/Aplicacion/Utilidades/DatosUsuario.aspx?Tab=4"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-icon"
@@ -934,7 +934,7 @@ function App() {
             </div>
             <div className="glass-card" style={{ width: '100%', padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: '718px', maxHeight: '840px' }}>
               <iframe
-                src="https://extranet.tragsa.es/f5-w-68747470733a2f2f65787472616e65742e7472616773612e6573$$/TRAGSANET/SistemasInformacion/Aplicacion/Utilidades/DatosUsuario.aspx?Tab=4"
+                src="https://extranet.tragsa.es/TRAGSANET/SistemasInformacion/Aplicacion/Utilidades/DatosUsuario.aspx?Tab=4"
                 style={{ flex: 1, width: '100%', height: '100%', border: 'none', background: 'white' }}
                 title="Tragsanet Datos Usuario"
               />

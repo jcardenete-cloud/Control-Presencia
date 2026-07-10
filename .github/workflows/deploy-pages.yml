@@ -36,6 +36,7 @@ jobs:
           GITHUB_ACTIONS: true
           GITHUB_REPOSITORY: ${{ github.repository }}
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || secrets.VITE_SUPABASE_SECRET_KEY }}
           VITE_SUPABASE_SECRET_KEY: ${{ secrets.VITE_SUPABASE_SECRET_KEY }}
         run: npm run build
 

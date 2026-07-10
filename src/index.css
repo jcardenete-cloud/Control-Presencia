@@ -1,4 +1,14 @@
-@import url('https://fonts.googleapis.com/css2?family=Questrial&display=swap');
+@font-face {
+  font-family: 'HarmoniaSansProCyr-Cond';
+  src: url('./assets/fonts/HarmoniaSansProCyr-Cond.woff2') format('woff2'),
+    url('./assets/fonts/HarmoniaSansProCyr-Cond.woff') format('woff');
+  font-weight: 400;
+  /* O el grosor correspondiente (e.g., 300, 500, 700) */
+  font-style: normal;
+  font-display: swap;
+  /* Muestra una fuente del sistema mientras se descarga la fuente local */
+}
+
 
 :root {
   --primary: #2aa198;
@@ -16,7 +26,7 @@
   --success-bg: rgba(133, 153, 0, 0.1);
   --danger-bg: rgba(220, 50, 47, 0.1);
   --warning-bg: rgba(181, 137, 0, 0.1);
-  --font-main: 'Questrial', sans-serif;
+  --font-main: 'HarmoniaSansProCyr-Cond', sans-serif;
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 

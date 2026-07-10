@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@6..144,1..1000&family=Mulish:ital,wght@0,200..1000;1,200..1000&family=Questrial&display=swap');
+
 :root {
   --primary: #2aa198;
   --primary-hover: #268bd2;
@@ -14,7 +16,7 @@
   --success-bg: rgba(133, 153, 0, 0.1);
   --danger-bg: rgba(220, 50, 47, 0.1);
   --warning-bg: rgba(181, 137, 0, 0.1);
-  --font-main: HarmoniaSansW06-condensed, sans-serif;
+  --font-main: 'Google Sans Flex', 'Mulish', 'Questrial', sans-serif;
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 

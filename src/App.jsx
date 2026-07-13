@@ -516,83 +516,83 @@ function App() {
   return (
     <>
       <nav className="sidebar">
-        <div className="sidebar-footer">
-          <div className="sidebar-action-btn" style={{ cursor: 'default' }}>
-            <Palette size={18} />
-            <select
-              id="theme-selector"
-              value={theme}
-              onChange={(e) => setTheme(e.target.value)}
-              style={{
-                flex: 1,
-                background: 'var(--glass-bg)',
-                color: 'var(--text-main)',
-                border: '1px solid var(--glass-border)',
-                borderRadius: '8px',
-                padding: '0.35rem 0.5rem',
-                fontSize: '0.85rem',
-                fontFamily: 'inherit',
-                fontWeight: 500,
-                cursor: 'pointer',
-                outline: 'none',
-                transition: 'var(--transition)',
-              }}
-            >
-              <option value="dark">Oscuro</option>
-              <option value="solarized">Solarized</option>
-              <option value="onenote">OneNote</option>
-              <option value="outlook">Outlook (Azul)</option>
-            </select>
-          </div>
 
-          <div className="sidebar-header">
-            <Fingerprint size={32} strokeWidth={2.5} style={{ color: 'var(--primary)', filter: 'drop-shadow(0 0 8px var(--primary))' }} />
-            <span className="sidebar-logo-text">Control de Presencia</span>
-          </div>
-
-          <div className="sidebar-nav">
-            <button
-              className={`sidebar-item ${activeTab === 'today' ? 'active' : ''}`}
-              onClick={() => setActiveTab('today')}
-            >
-              <Clock size={20} />
-              <span>Fichajes de hoy</span>
-            </button>
-            <button
-              className={`sidebar-item ${activeTab === 'projection' ? 'active' : ''}`}
-              onClick={() => setActiveTab('projection')}
-            >
-              <History size={20} />
-              <span>Proyección</span>
-            </button>
-            <button
-              className={`sidebar-item ${activeTab === 'weekly' ? 'active' : ''}`}
-              onClick={() => setActiveTab('weekly')}
-            >
-              <Calendar size={20} />
-              <span>Historial Semanal</span>
-            </button>
-            <button
-              className={`sidebar-item ${activeTab === 'tragsanet' ? 'active' : ''}`}
-              onClick={() => setActiveTab('tragsanet')}
-            >
-              <User size={20} />
-              <span>Mis Datos Tragsanet</span>
-            </button>
-
-          </div>
-
-
-          <button className="sidebar-action-btn" onClick={() => setShowSettings(true)}>
-            <Settings size={18} />
-            <span>Configuración</span>
-          </button>
-          <button className="sidebar-action-btn" onClick={handleLogout} style={{ color: 'var(--danger)' }}>
-            <LogOut size={18} />
-            <span>Cerrar Sesión</span>
-          </button>
+        <div className="sidebar-header">
+          <Fingerprint size={32} strokeWidth={2.5} style={{ color: 'var(--primary)', filter: 'drop-shadow(0 0 8px var(--primary))' }} />
+          <span className="sidebar-logo-text">Control de Presencia</span>
         </div>
-      </nav>
+
+        <div className="sidebar-action-btn" style={{ cursor: 'default' }}>
+          <Palette size={18} />
+          <select
+            id="theme-selector"
+            value={theme}
+            onChange={(e) => setTheme(e.target.value)}
+            style={{
+              flex: 1,
+              background: 'var(--glass-bg)',
+              color: 'var(--text-main)',
+              border: '1px solid var(--glass-border)',
+              borderRadius: '8px',
+              padding: '0.35rem 0.5rem',
+              fontSize: '0.85rem',
+              fontFamily: 'inherit',
+              fontWeight: 500,
+              cursor: 'pointer',
+              outline: 'none',
+              transition: 'var(--transition)',
+            }}
+          >
+            <option value="dark">Oscuro</option>
+            <option value="solarized">Solarized</option>
+            <option value="onenote">OneNote</option>
+            <option value="outlook">Outlook (Azul)</option>
+          </select>
+        </div>
+
+        <div className="sidebar-nav">
+          <button
+            className={`sidebar-item ${activeTab === 'today' ? 'active' : ''}`}
+            onClick={() => setActiveTab('today')}
+          >
+            <Clock size={20} />
+            <span>Fichajes de hoy</span>
+          </button>
+          <button
+            className={`sidebar-item ${activeTab === 'projection' ? 'active' : ''}`}
+            onClick={() => setActiveTab('projection')}
+          >
+            <History size={20} />
+            <span>Proyección</span>
+          </button>
+          <button
+            className={`sidebar-item ${activeTab === 'weekly' ? 'active' : ''}`}
+            onClick={() => setActiveTab('weekly')}
+          >
+            <Calendar size={20} />
+            <span>Historial Semanal</span>
+          </button>
+          <button
+            className={`sidebar-item ${activeTab === 'tragsanet' ? 'active' : ''}`}
+            onClick={() => setActiveTab('tragsanet')}
+          >
+            <User size={20} />
+            <span>Mis Datos Tragsanet</span>
+          </button>
+
+        </div>
+
+
+        <button className="sidebar-action-btn" onClick={() => setShowSettings(true)}>
+          <Settings size={18} />
+          <span>Configuración</span>
+        </button>
+        <button className="sidebar-action-btn" onClick={handleLogout} style={{ color: 'var(--danger)' }}>
+          <LogOut size={18} />
+          <span>Cerrar Sesión</span>
+        </button>
+      </div>
+    </nav >
 
       <main className="main-content animate-fade-in" style={{ paddingBottom: '5rem' }}>
         <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

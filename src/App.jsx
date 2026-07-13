@@ -516,12 +516,10 @@ function App() {
   return (
     <>
       <nav className="sidebar">
-
         <div className="sidebar-header">
           <Fingerprint size={32} strokeWidth={2.5} style={{ color: 'var(--primary)', filter: 'drop-shadow(0 0 8px var(--primary))' }} />
           <span className="sidebar-logo-text">Control de Presencia</span>
         </div>
-
         <div className="sidebar-action-btn" style={{ cursor: 'default' }}>
           <Palette size={18} />
           <select
@@ -549,7 +547,6 @@ function App() {
             <option value="outlook">Outlook (Azul)</option>
           </select>
         </div>
-
         <div className="sidebar-nav">
           <button
             className={`sidebar-item ${activeTab === 'today' ? 'active' : ''}`}
@@ -582,17 +579,18 @@ function App() {
 
         </div>
 
+        <div className="sidebar-footer">
 
-        <button className="sidebar-action-btn" onClick={() => setShowSettings(true)}>
-          <Settings size={18} />
-          <span>Configuración</span>
-        </button>
-        <button className="sidebar-action-btn" onClick={handleLogout} style={{ color: 'var(--danger)' }}>
-          <LogOut size={18} />
-          <span>Cerrar Sesión</span>
-        </button>
-      </div>
-    </nav >
+          <button className="sidebar-action-btn" onClick={() => setShowSettings(true)}>
+            <Settings size={18} />
+            <span>Configuración</span>
+          </button>
+          <button className="sidebar-action-btn" onClick={handleLogout} style={{ color: 'var(--danger)' }}>
+            <LogOut size={18} />
+            <span>Cerrar Sesión</span>
+          </button>
+        </div>
+      </nav>
 
       <main className="main-content animate-fade-in" style={{ paddingBottom: '5rem' }}>
         <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

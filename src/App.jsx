@@ -547,6 +547,7 @@ function App() {
             <option value="outlook">Outlook (Azul)</option>
           </select>
         </div>
+
         <div className="sidebar-nav">
           <button
             className={`sidebar-item ${activeTab === 'today' ? 'active' : ''}`}

@@ -218,6 +218,12 @@ body.theme-outlook {
   color: var(--primary);
 }
 
+.sidebar-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.2);
+  margin: 1rem 0;
+}
+
 #theme-selector {
   appearance: auto;
 }

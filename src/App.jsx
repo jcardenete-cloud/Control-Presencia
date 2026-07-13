@@ -547,6 +547,7 @@ function App() {
             <option value="outlook">Outlook (Azul)</option>
           </select>
         </div>
+        <hr className="sidebar-divider" />
 
         <div className="sidebar-nav">
           <button

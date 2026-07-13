@@ -11,20 +11,18 @@
 
 
 :root {
-  --primary: #2aa198;
-  --primary-hover: #268bd2;
-  --bg-main: #002b36;
-  --bg-card: rgba(7, 54, 66, 0.7);
-  --text-main: #839496;
-  --text-muted: #586e75;
-  --success: #859900;
-  --warning: #b58900;
-  --danger: #dc322f;
-  --glass-border: rgba(131, 148, 150, 0.15);
-  --glass-bg: rgba(7, 54, 66, 0.5);
-  --primary-bg: rgba(42, 161, 152, 0.1);
-  --success-bg: rgba(133, 153, 0, 0.1);
-  --danger-bg: rgba(220, 50, 47, 0.1);
+  --primary: #0078d4;
+  --primary-hover: #005a9e;
+  --bg-main: #f3f2f1;
+  --bg-card: rgba(255, 255, 255, 0.9);
+  --text-main: #201f1e;
+  --text-muted: #605e5d;
+  --glass-border: rgba(0, 120, 212, 0.15);
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --primary-bg: rgba(0, 120, 212, 0.1);
+  --success: #107c10;
+  --warning: #d83b01;
+  --danger: #a80000;
   --warning-bg: rgba(181, 137, 0, 0.1);
   --font-main: 'HarmoniaSansProCyr-Cond', sans-serif;
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);

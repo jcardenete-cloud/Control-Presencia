@@ -104,7 +104,7 @@ function App() {
   const [activeFichaje, setActiveFichaje] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [error, setError] = useState(null);
-  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
+  const [theme, setTheme] = useState('outlook');
   const [editingFichaje, setEditingFichaje] = useState(null);
   const [editStartTime, setEditStartTime] = useState('');
   const [editEndTime, setEditEndTime] = useState('');
@@ -520,34 +520,6 @@ function App() {
           <Fingerprint size={32} strokeWidth={2.5} style={{ color: 'var(--primary)', filter: 'drop-shadow(0 0 8px var(--primary))' }} />
           <span className="sidebar-logo-text">Control de Presencia</span>
         </div>
-        <div className="sidebar-action-btn" style={{ cursor: 'default' }}>
-          <Palette size={18} />
-          <select
-            id="theme-selector"
-            value={theme}
-            onChange={(e) => setTheme(e.target.value)}
-            style={{
-              flex: 1,
-              background: 'var(--glass-bg)',
-              color: 'var(--text-main)',
-              border: '1px solid var(--glass-border)',
-              borderRadius: '8px',
-              padding: '0.35rem 0.5rem',
-              fontSize: '0.85rem',
-              fontFamily: 'inherit',
-              fontWeight: 500,
-              cursor: 'pointer',
-              outline: 'none',
-              transition: 'var(--transition)',
-            }}
-          >
-            <option value="dark">Oscuro</option>
-            <option value="solarized">Solarized</option>
-            <option value="onenote">OneNote</option>
-            <option value="outlook">Outlook (Azul)</option>
-          </select>
-        </div>
-        <hr className="sidebar-divider" />
 
         <div className="sidebar-nav">
           <button

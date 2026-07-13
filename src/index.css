@@ -219,7 +219,7 @@ body.theme-outlook {
 }
 
 .sidebar-divider {
-  height: 1px;
+  height: 0.5px;
   background: rgba(255, 255, 255, 0.2);
   margin: 1rem 0;
 }

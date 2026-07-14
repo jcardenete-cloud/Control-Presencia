@@ -27,7 +27,7 @@ import {
 import {
     clearPlannedShifts,
     createPlannedShift,
-    deletePlannedShift,
+    deletePlannedShift as deletePlannedShiftApi,
     deleteProjectionDays,
     getPlannedShifts,
     getProjectionDays,
@@ -78,28 +78,26 @@ const ProjectionPage = ({ fichajes, config, currentTime = new Date(), weeklyLeft
         if (!newShift.date) return;
 
         try {
-            const data = await createPlannedShift({
+            await createPlannedShift({
                 date: newShift.date,
                 start_time: newShift.start,
                 end_time: newShift.end
             });
-            const shiftToAdd = {
-                id: data.id,
-                date: newShift.date,
-                start_time: newShift.start,
-                end_time: newShift.end
-            };
-            setPlannedShifts([...plannedShifts, shiftToAdd]);
+            // Refresh shifts from DB to avoid stale state
+            const refreshed = await getPlannedShifts();
+            setPlannedShifts(refreshed);
             setExpandedDays(prev => ({ ...prev, [newShift.date]: true }));
         } catch (e) {
             console.error("Error adding shift", e);
         }
     };
 
-    const deletePlannedShift = async (id) => {
+    const handleDeletePlannedShift = async (id) => {
         try {
-            await deletePlannedShift(id);
-            setPlannedShifts(plannedShifts.filter(s => s.id !== id));
+            await deletePlannedShiftApi(id);
+            // Refresh the list to keep state consistent
+            const refreshed = await getPlannedShifts();
+            setPlannedShifts(refreshed);
         } catch (e) {
             console.error("Error deleting shift", e);
         }
@@ -488,7 +486,7 @@ const ProjectionPage = ({ fichajes, config, currentTime = new Date(), weeklyLeft
                                                                             <span style={{ opacity: 0.3 }}>→</span>
                                                                             <span style={{ fontWeight: 600 }}>{s.end_time}</span>
                                                                             <button
-                                                                                onClick={() => deletePlannedShift(s.id)}
+                                                                                onClick={() => handleDeletePlannedShift(s.id)}
                                                                                 style={{ background: 'none', marginLeft: '4px', opacity: 0.5, color: 'var(--danger)', display: 'flex' }}
                                                                             >
                                                                                 <CloseIcon size={12} />

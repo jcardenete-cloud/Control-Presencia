@@ -137,39 +137,41 @@ function App() {
     setLoggedInUser(null);
   };
 
-  // Sync Supabase Auth session with loggedInUser
+  // Sync Supabase Auth session with loggedInUser as the single source of truth
   useEffect(() => {
     if (!supabase) return;
 
     let isMounted = true;
 
-    // Check existing session once on app load
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('[Supabase Auth Event]:', event, 'Email:', session?.user?.email);
+
       if (!isMounted) return;
-      if (session?.user?.email) {
+
+      if (event === 'SIGNED_OUT' || !session) {
+        setLoggedInUser(null);
+        localStorage.removeItem('user');
+        return;
+      }
+
+      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && session?.user?.email) {
         const hasAccess = await checkUserPresencia(session.user.email);
         if (isMounted) {
           if (hasAccess) {
-            setLoggedInUser({
+            const userObj = {
               id: session.user.id,
               nombre: session.user.email,
               is_admin: true
-            });
+            };
+            setLoggedInUser(userObj);
+            localStorage.setItem('user', JSON.stringify(userObj));
           } else {
+            console.warn('[App Auth] Acceso denegado en jcf.app_usuarios para:', session.user.email);
             await logoutUser();
             setLoggedInUser(null);
+            localStorage.removeItem('user');
           }
         }
-      } else {
-        setLoggedInUser(null);
-      }
-    });
-
-    // Listen only to SIGNED_OUT events
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (!isMounted) return;
-      if (event === 'SIGNED_OUT') {
-        setLoggedInUser(null);
       }
     });
 

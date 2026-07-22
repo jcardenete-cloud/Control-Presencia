@@ -244,6 +244,13 @@ export async function loginUser(email, password) {
   const cleanEmail = (email || '').trim();
   console.log('Intentando login para:', cleanEmail);
 
+  // Asegurar que limpiamos cualquier sesión residual anterior de un intento previo
+  try {
+    await ensureSupabase().auth.signOut();
+  } catch (e) {
+    // ignorar error de signOut previo
+  }
+
   const { data, error } = await ensureSupabase().auth.signInWithPassword({
     email: cleanEmail,
     password
@@ -251,19 +258,16 @@ export async function loginUser(email, password) {
 
   if (error) {
     console.error('Error en Supabase auth.signInWithPassword:', error);
-    throw new Error(error.message || 'No tiene acceso a esta aplicación');
+    throw new Error('No tiene acceso a esta aplicación');
   }
 
-  try {
-    const hasAccess = await checkUserPresencia(cleanEmail);
-    if (!hasAccess) {
-      console.error('Acceso denegado en app_usuarios: email no existe o presencia no es true');
+  const hasAccess = await checkUserPresencia(cleanEmail);
+  if (!hasAccess) {
+    console.error('Acceso denegado en app_usuarios: email no existe o presencia no es true');
+    try {
       await ensureSupabase().auth.signOut();
-      throw new Error('No tiene acceso a esta aplicación');
-    }
-  } catch (err) {
-    await ensureSupabase().auth.signOut();
-    throw new Error(err.message || 'No tiene acceso a esta aplicación');
+    } catch (e) {}
+    throw new Error('No tiene acceso a esta aplicación');
   }
 
   return {
@@ -277,7 +281,11 @@ export async function loginUser(email, password) {
 }
 
 export async function logoutUser() {
-  const { error } = await ensureSupabase().auth.signOut();
-  if (error) throw error;
+  try {
+    const { error } = await ensureSupabase().auth.signOut();
+    if (error) console.warn('Error en auth.signOut:', error);
+  } catch (err) {
+    console.warn('Excepción en logoutUser:', err);
+  }
 }
 

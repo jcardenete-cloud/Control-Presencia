@@ -160,6 +160,8 @@ function App() {
             setLoggedInUser(null);
           }
         }
+      } else {
+        setLoggedInUser(null);
       }
     });
 
@@ -238,7 +240,7 @@ function App() {
       setActiveFichaje(active);
     } catch (err) {
       console.error('Error fetching data:', err);
-      setError('No se pudo conectar con Supabase. Revisa las variables VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY.');
+      setError('Error al obtener datos: ' + (err.message || 'Error de conexión con Supabase'));
     }
   };
 

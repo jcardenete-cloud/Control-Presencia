@@ -176,6 +176,27 @@ export async function clearPlannedShifts() {
   return deleteRows('planned_shifts');
 }
 
+export async function checkUserPresencia(email) {
+  if (!email) return false;
+  try {
+    const { data, error } = await ensureSupabase()
+      .from('app_usuarios')
+      .select('email, presencia')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (error || !data) {
+      if (error) console.error('Error consultando jcf.app_usuarios:', error);
+      return false;
+    }
+
+    return data.presencia === true || String(data.presencia).toLowerCase() === 'true';
+  } catch (err) {
+    console.error('Excepción consultando jcf.app_usuarios:', err);
+    return false;
+  }
+}
+
 export async function loginUser(email, password) {
   console.log('Intentando login para:', email);
   const { data, error } = await ensureSupabase().auth.signInWithPassword({
@@ -185,7 +206,19 @@ export async function loginUser(email, password) {
 
   if (error) {
     console.error('Error en Supabase auth.signInWithPassword:', error);
-    throw new Error(error.message || 'Credenciales inválidas');
+    throw new Error('No tiene acceso a esta aplicación');
+  }
+
+  try {
+    const hasAccess = await checkUserPresencia(email);
+    if (!hasAccess) {
+      console.error('Acceso denegado en app_usuarios: email no existe o presencia no es true');
+      await ensureSupabase().auth.signOut();
+      throw new Error('No tiene acceso a esta aplicación');
+    }
+  } catch (err) {
+    await ensureSupabase().auth.signOut();
+    throw new Error('No tiene acceso a esta aplicación');
   }
 
   return {
@@ -193,7 +226,7 @@ export async function loginUser(email, password) {
     user: {
       id: data.user.id,
       nombre: data.user.email,
-      is_admin: true // Como es el único usuario con acceso, le otorgamos privilegios de admin
+      is_admin: true
     }
   };
 }

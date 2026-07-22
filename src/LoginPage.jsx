@@ -17,10 +17,10 @@ export default function LoginPage({ onLogin }) {
             if (data.success) {
                 onLogin(data.user);
             } else {
-                setError(data.error || 'Credenciales inválidas');
+                setError(data.error || 'No tiene acceso a esta aplicación');
             }
         } catch (err) {
-            setError(err.message || 'Error al conectar con Supabase');
+            setError(err.message || 'No tiene acceso a esta aplicación');
         } finally {
             setLoading(false);
         }

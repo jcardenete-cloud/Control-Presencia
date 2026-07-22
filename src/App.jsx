@@ -45,6 +45,7 @@ import {
   saveWeeklyLeftover,
   updateFichaje,
   logoutUser,
+  checkUserPresencia,
   supabase
 } from './lib/supabaseApi';
 
@@ -140,33 +141,44 @@ function App() {
   useEffect(() => {
     if (!supabase) return;
 
+    let isMounted = true;
+
+    const validateSession = async (session) => {
+      if (session?.user?.email) {
+        const hasAccess = await checkUserPresencia(session.user.email);
+        if (hasAccess) {
+          if (isMounted) {
+            setLoggedInUser({
+              id: session.user.id,
+              nombre: session.user.email,
+              is_admin: true
+            });
+          }
+        } else {
+          await logoutUser();
+          if (isMounted) {
+            setLoggedInUser(null);
+          }
+        }
+      } else {
+        if (isMounted) {
+          setLoggedInUser(null);
+        }
+      }
+    };
+
     // Check current session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setLoggedInUser({
-          id: session.user.id,
-          nombre: session.user.email,
-          is_admin: true
-        });
-      } else {
-        setLoggedInUser(null);
-      }
+      validateSession(session);
     });
 
     // Listen to auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
-        setLoggedInUser({
-          id: session.user.id,
-          nombre: session.user.email,
-          is_admin: true
-        });
-      } else {
-        setLoggedInUser(null);
-      }
+      validateSession(session);
     });
 
     return () => {
+      isMounted = false;
       subscription?.unsubscribe();
     };
   }, []);

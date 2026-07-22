@@ -244,13 +244,6 @@ export async function loginUser(email, password) {
   const cleanEmail = (email || '').trim();
   console.log('Intentando login para:', cleanEmail);
 
-  // Asegurar que limpiamos cualquier sesión residual anterior de un intento previo
-  try {
-    await ensureSupabase().auth.signOut();
-  } catch (e) {
-    // ignorar error de signOut previo
-  }
-
   const { data, error } = await ensureSupabase().auth.signInWithPassword({
     email: cleanEmail,
     password

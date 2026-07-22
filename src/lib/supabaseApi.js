@@ -184,19 +184,19 @@ export async function checkUserPresencia(email) {
   try {
     const client = ensureSupabase();
     
-    // Intento 1: Consultar especificando esquema 'jcf' si está disponible
-    let query = client.schema ? client.schema('jcf').from('app_usuarios') : client.from('app_usuarios');
-    let { data, error } = await query.select('*');
+    // 1. Intentar consulta directa (el cliente ya tiene db.schema: 'jcf' configurado)
+    let { data, error } = await client.from('app_usuarios').select('*');
 
+    // 2. Fallback con .schema('jcf') en caso de que falle la consulta directa
     if (error) {
-      console.warn('[checkUserPresencia] Error al consultar con .schema("jcf"), reintentando cliente directo:', error);
-      const fallback = await client.from('app_usuarios').select('*');
+      console.warn('[checkUserPresencia] Error en consulta directa a app_usuarios, reintentando con .schema("jcf"):', error);
+      const fallback = client.schema ? await client.schema('jcf').from('app_usuarios').select('*') : { data: null, error };
       data = fallback.data;
       error = fallback.error;
     }
 
     if (error) {
-      console.error('[checkUserPresencia] Error final consultando la tabla app_usuarios:', error);
+      console.error('[checkUserPresencia] Error al consultar la tabla app_usuarios:', error);
       return false;
     }
 
@@ -205,7 +205,7 @@ export async function checkUserPresencia(email) {
       return false;
     }
 
-    console.log(`[checkUserPresencia] Se obtuvieron ${data.length} registros de app_usuarios:`, data);
+    console.log(`[checkUserPresencia] ${data.length} registros obtenidos de app_usuarios:`, data);
 
     // Buscar coincidencia de email ignorando mayúsculas/minúsculas y espacios
     const userRow = data.find(row => {
@@ -214,11 +214,11 @@ export async function checkUserPresencia(email) {
     });
 
     if (!userRow) {
-      console.warn(`[checkUserPresencia] No se encontró ningún usuario coincidente con email: "${cleanEmail}"`);
+      console.warn(`[checkUserPresencia] No se encontró el email "${cleanEmail}" en app_usuarios.`);
       return false;
     }
 
-    console.log('[checkUserPresencia] Usuario encontrado en app_usuarios:', userRow);
+    console.log('[checkUserPresencia] Registro de usuario encontrado en app_usuarios:', userRow);
 
     // Comprobar presencia (boolean true, string 'true'/'t'/'1'/'si'/'yes', número 1, etc.)
     const rawPresencia = userRow.presencia ?? userRow.Presencia;
@@ -228,11 +228,11 @@ export async function checkUserPresencia(email) {
       ['true', 't', '1', 'si', 'sí', 'yes'].includes(String(rawPresencia).trim().toLowerCase());
 
     if (!isTrue) {
-      console.warn(`[checkUserPresencia] El usuario "${cleanEmail}" existe pero su campo presencia no es true (valor actual:`, rawPresencia, `)`);
+      console.warn(`[checkUserPresencia] El usuario "${cleanEmail}" existe pero su campo presencia no es true (valor:`, rawPresencia, `)`);
       return false;
     }
 
-    console.log(`[checkUserPresencia] ¡Acceso AUTORIZADO para ${cleanEmail}!`);
+    console.log(`[checkUserPresencia] Acceso AUTORIZADO para "${cleanEmail}"`);
     return true;
   } catch (err) {
     console.error('[checkUserPresencia] Excepción inesperada:', err);
@@ -251,7 +251,7 @@ export async function loginUser(email, password) {
 
   if (error) {
     console.error('Error en Supabase auth.signInWithPassword:', error);
-    throw new Error('No tiene acceso a esta aplicación');
+    throw new Error(error.message || 'Credenciales inválidas');
   }
 
   const hasAccess = await checkUserPresencia(cleanEmail);

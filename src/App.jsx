@@ -137,48 +137,42 @@ function App() {
     setLoggedInUser(null);
   };
 
-  // Sync Supabase Auth session with loggedInUser
+  // Sync Supabase Auth session with loggedInUser on initial load & handle logout events
   useEffect(() => {
     if (!supabase) return;
 
-    let isMounted = true;
+    let isSubscribed = true;
 
-    const validateSession = async (session) => {
+    // Check existing session once on app load
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!isSubscribed) return;
       if (session?.user?.email) {
         const hasAccess = await checkUserPresencia(session.user.email);
-        if (hasAccess) {
-          if (isMounted) {
+        if (isSubscribed) {
+          if (hasAccess) {
             setLoggedInUser({
               id: session.user.id,
               nombre: session.user.email,
               is_admin: true
             });
-          }
-        } else {
-          await logoutUser();
-          if (isMounted) {
+          } else {
+            await logoutUser();
             setLoggedInUser(null);
           }
         }
-      } else {
-        if (isMounted) {
-          setLoggedInUser(null);
-        }
       }
-    };
-
-    // Check current session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      validateSession(session);
     });
 
-    // Listen to auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      validateSession(session);
+    // Listen to SIGNED_OUT events
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!isSubscribed) return;
+      if (event === 'SIGNED_OUT' || !session) {
+        setLoggedInUser(null);
+      }
     });
 
     return () => {
-      isMounted = false;
+      isSubscribed = false;
       subscription?.unsubscribe();
     };
   }, []);

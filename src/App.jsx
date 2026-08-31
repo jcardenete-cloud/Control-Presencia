@@ -499,6 +499,11 @@ function App() {
       'Estado': ''
     });
 
+    if (!weeklyHistoryDays.length) {
+      setError('No hay datos para exportar en esta semana.');
+      return;
+    }
+
     const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Semana");
@@ -516,7 +521,9 @@ function App() {
     ];
     worksheet['!cols'] = wscols;
 
-    XLSX.writeFile(workbook, `Horario_${format(weeklyHistoryDays[0], 'yyyyMMdd')}_${format(weeklyHistoryDays[6], 'yyyyMMdd')}.xlsx`);
+    const weekStart = weeklyHistoryDays[0];
+    const weekEnd = weeklyHistoryDays[weeklyHistoryDays.length - 1];
+    XLSX.writeFile(workbook, `Horario_${format(weekStart, 'yyyyMMdd')}_${format(weekEnd, 'yyyyMMdd')}.xlsx`);
   };
 
   if (!loggedInUser) {

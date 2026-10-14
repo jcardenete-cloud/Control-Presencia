@@ -40,6 +40,7 @@ import {
   deleteFichaje,
   getConfig,
   getFichajes,
+  getProjectionDays,
   getWeeklyLeftovers,
   saveConfig,
   saveWeeklyLeftover,
@@ -95,6 +96,7 @@ function App() {
     hours_leftover: 0
   });
   const [weeklyLeftovers, setWeeklyLeftovers] = useState([]);
+  const [projectionSpecialDays, setProjectionSpecialDays] = useState({});
   const [showSettings, setShowSettings] = useState(false);
   const [showManualEntry, setShowManualEntry] = useState(false);
   const [activeTab, setActiveTab] = useState('today'); // 'today', 'weekly', 'projection'
@@ -225,8 +227,16 @@ function App() {
         getWeeklyLeftovers()
       ]);
 
+      let projectionDaysData = { specialDays: {} };
+      try {
+        projectionDaysData = await getProjectionDays();
+      } catch (projectionError) {
+        console.error('Error fetching special days:', projectionError);
+      }
+
       setFichajes(Array.isArray(fichajesData) ? fichajesData : []);
       setWeeklyLeftovers(Array.isArray(weeklyLeftoversData) ? weeklyLeftoversData : []);
+      setProjectionSpecialDays(projectionDaysData.specialDays || {});
 
       const defaultConfig = {
         hours_per_week: 38.5,
@@ -251,6 +261,14 @@ function App() {
       fetchData();
     }
   }, [loggedInUser]);
+
+  useEffect(() => {
+    if (!loggedInUser || activeTab !== 'weekly') return;
+
+    getProjectionDays()
+      .then(data => setProjectionSpecialDays(data.specialDays || {}))
+      .catch(err => console.error('Error loading special days for weekly history:', err));
+  }, [activeTab, loggedInUser]);
 
   useEffect(() => {
     // Update calculation time every 30s (display clock is handled by LiveClock component)
@@ -449,7 +467,15 @@ function App() {
   const weeklyHistoryDays = getWeekDays(selectedWeekDate);
   const weekRangeLabel = `${format(weeklyHistoryDays[0], "d 'de' MMMM", { locale: es })} - ${format(weeklyHistoryDays[4], "d 'de' MMMM", { locale: es })}`;
 
-  const weeklyHistoryTotal = weeklyHistoryDays.reduce((acc, d) => acc + calculateDayTotal(format(d, "yyyy-MM-dd"), fichajes, currentTime), 0);
+  const getWeeklyHistoryDayTotal = (day) => {
+    const dateStr = format(day, 'yyyy-MM-dd');
+    const actual = calculateDayTotal(dateStr, fichajes, currentTime);
+    return projectionSpecialDays[dateStr]
+      ? Math.max(actual, getDailyGoalForDate(day, config))
+      : actual;
+  };
+
+  const weeklyHistoryTotal = weeklyHistoryDays.reduce((acc, day) => acc + getWeeklyHistoryDayTotal(day), 0);
   const weeklyHistoryGoal = weeklyHistoryDays.reduce((acc, d) => {
     const isWeekend = d.getDay() === 0 || d.getDay() === 6;
     return acc + (isWeekend ? 0 : getDailyGoalForDate(d, config));
@@ -459,7 +485,8 @@ function App() {
   const exportToExcel = () => {
     const data = weeklyHistoryDays.map(day => {
       const dStr = format(day, "yyyy-MM-dd");
-      const total = calculateDayTotal(dStr, fichajes, currentTime);
+      const total = getWeeklyHistoryDayTotal(day);
+      const specialDay = projectionSpecialDays[dStr];
       const isWeekend = day.getDay() === 0 || day.getDay() === 6;
       const goalForDay = getDailyGoalForDate(day, config);
       const dayBalance = total > 0 || !isWeekend ? total - goalForDay : 0;
@@ -483,7 +510,7 @@ function App() {
         'Total (HH:mm)': total > 0 ? msToTime(total) : '--:--',
         'Balance (Horas)': (dayBalance / (3600 * 1000)).toFixed(2),
         'Balance (HH:mm)': (dayBalance !== 0 ? (dayBalance > 0 ? '+' : '') + msToTime(dayBalance) : '00:00'),
-        'Estado': total >= goalForDay ? 'Hecho' : (total > 0 ? 'Parcial' : (isWeekend ? 'Off' : 'Pendiente'))
+        'Estado': specialDay ? `Hecho - ${specialDay}` : (total >= goalForDay ? 'Hecho' : (total > 0 ? 'Parcial' : (isWeekend ? 'Off' : 'Pendiente')))
       };
     });
 
@@ -887,7 +914,8 @@ function App() {
                   <tbody>
                     {weeklyHistoryDays.map(day => {
                       const dStr = format(day, "yyyy-MM-dd");
-                      const total = calculateDayTotal(dStr, fichajes, currentTime);
+                      const total = getWeeklyHistoryDayTotal(day);
+                      const specialDay = projectionSpecialDays[dStr];
                       const isToday = dStr === todayStr;
                       const isWeekend = day.getDay() === 0 || day.getDay() === 6;
                       const goalForDay = getDailyGoalForDate(day, config);
@@ -911,6 +939,11 @@ function App() {
                                   {format(new Date(f.start_time), 'HH:mm')} - {f.end_time ? format(new Date(f.end_time), 'HH:mm') : '...'}
                                 </span>
                               ))}
+                              {specialDay && (
+                                <span className="badge" style={{ background: 'var(--success-bg)', color: 'var(--success)', fontSize: '0.7rem' }}>
+                                  {specialDay.charAt(0).toUpperCase() + specialDay.slice(1)}
+                                </span>
+                              )}
                             </div>
                           </td>
                           <td style={{ fontWeight: 700 }}>{total > 0 ? msToTime(total) : '--:--'}</td>
@@ -919,7 +952,9 @@ function App() {
                           </td>
                           <td>
                             {total >= goalForDay ? (
-                              <span className="badge" style={{ background: 'rgba(34, 197, 94, 0.2)', color: '#4ade80' }}>Hecho</span>
+                              <span className="badge" style={{ background: 'rgba(34, 197, 94, 0.2)', color: '#4ade80' }}>
+                                {specialDay ? `Hecho · ${specialDay}` : 'Hecho'}
+                              </span>
                             ) : (
                               total > 0 ? <span className="badge" style={{ background: 'rgba(245, 158, 11, 0.2)', color: '#fbbf24' }}>Parcial</span> :
                                 (isWeekend ? <span className="badge" style={{ opacity: 0.3 }}>Off</span> : <span className="badge" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#f87171' }}>Pend.</span>)

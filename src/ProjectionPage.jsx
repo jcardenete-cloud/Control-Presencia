@@ -31,12 +31,14 @@ import {
     deleteProjectionDays,
     getPlannedShifts,
     getProjectionDays,
-    saveProjectionDay
+    saveProjectionDay,
+    saveSpecialDay
 } from './lib/supabaseApi';
 
 const ProjectionPage = ({ fichajes, config, currentTime = new Date(), weeklyLeftovers = [] }) => {
     const [selectedWeek, setSelectedWeek] = useState(new Date());
     const [projections, setProjections] = useState({}); // Total hours per day: { 'yyyy-MM-dd': 'HH:mm' }
+    const [specialDays, setSpecialDays] = useState({});
     const [plannedShifts, setPlannedShifts] = useState([]); // Array of { id, date, start_time, end_time }
     const [expandedDays, setExpandedDays] = useState({});
     const [loading, setLoading] = useState(true);
@@ -51,7 +53,34 @@ const ProjectionPage = ({ fichajes, config, currentTime = new Date(), weeklyLeft
                     getProjectionDays(),
                     getPlannedShifts()
                 ]);
-                setProjections(projData);
+
+                let legacySpecialDays = {};
+                try {
+                    const storedSpecialDays = JSON.parse(localStorage.getItem('projectionSpecialDays') || '{}');
+                    if (storedSpecialDays && typeof storedSpecialDays === 'object' && !Array.isArray(storedSpecialDays)) {
+                        legacySpecialDays = storedSpecialDays;
+                    }
+                } catch (e) {
+                    console.warn('Ignoring invalid locally stored special days', e);
+                }
+                const loadedSpecialDays = { ...projData.specialDays };
+                const validSpecialDayTypes = ['festivo', 'vacaciones', 'puente'];
+                const legacyEntries = Object.entries(legacySpecialDays).filter(([date, type]) =>
+                    validSpecialDayTypes.includes(type) && !loadedSpecialDays[date]
+                );
+
+                await Promise.all(legacyEntries.map(([date, type]) =>
+                    saveSpecialDay({
+                        date,
+                        hours: projData.projections[date] || '00:00',
+                        special_day: type
+                    })
+                ));
+                legacyEntries.forEach(([date, type]) => { loadedSpecialDays[date] = type; });
+                localStorage.removeItem('projectionSpecialDays');
+
+                setProjections(projData.projections);
+                setSpecialDays(loadedSpecialDays);
                 setPlannedShifts(shiftsData);
             } catch (e) {
                 console.error("Error loading data from DB", e);
@@ -67,9 +96,33 @@ const ProjectionPage = ({ fichajes, config, currentTime = new Date(), weeklyLeft
         setProjections(newProjections);
 
         try {
-            await saveProjectionDay({ date: dateStr, hours: value });
+            await saveProjectionDay({
+                date: dateStr,
+                hours: value,
+                special_day: specialDays[dateStr] || null
+            });
         } catch (e) {
             console.error("Error saving projection day to DB", e);
+        }
+    };
+
+    const handleSpecialDayChange = async (dateStr, value) => {
+        const newSpecialDays = { ...specialDays };
+        if (value) {
+            newSpecialDays[dateStr] = value;
+        } else {
+            delete newSpecialDays[dateStr];
+        }
+        setSpecialDays(newSpecialDays);
+        try {
+            await saveSpecialDay({
+                date: dateStr,
+                hours: projections[dateStr] || '00:00',
+                special_day: value || null
+            });
+        } catch (e) {
+            setSpecialDays(specialDays);
+            console.error('Error saving special day to DB', e);
         }
     };
 
@@ -111,6 +164,7 @@ const ProjectionPage = ({ fichajes, config, currentTime = new Date(), weeklyLeft
         if (!confirm('¿Borrar todas las proyecciones y turnos previstos?')) return;
 
         setProjections({});
+        setSpecialDays({});
         setPlannedShifts([]);
         try {
             await Promise.all([
@@ -194,6 +248,8 @@ const ProjectionPage = ({ fichajes, config, currentTime = new Date(), weeklyLeft
 
         const actual = calculateDayTotal(dStr, fichajes, currentTime);
         const goal = (day.getDay() === 0 || day.getDay() === 6) ? 0 : getDailyGoalForDate(day, config);
+        const specialDay = specialDays[dStr] || '';
+        const creditedActual = specialDay ? Math.max(actual, goal) : actual;
 
         // Planned shifts for this day
         const dayPlannedShifts = plannedShifts
@@ -242,25 +298,30 @@ const ProjectionPage = ({ fichajes, config, currentTime = new Date(), weeklyLeft
         });
 
         // Use planned shifts total if > 0, otherwise use manual projection input
-        const projectionStr = dayPlannedShifts.length > 0
+        const projectionStr = specialDay
+            ? msToTime(goal)
+            : dayPlannedShifts.length > 0
             ? msToTime(plannedShiftsMs)
             : (projections[dStr] || "00:00");
 
-        const projectedMs = dayPlannedShifts.length > 0
+        const projectedMs = specialDay
+            ? goal
+            : dayPlannedShifts.length > 0
             ? plannedShiftsMs
             : (hhmmToDecimal(projectionStr) * 3600 * 1000);
 
         const isTodayOngoing = dStr === format(new Date(), 'yyyy-MM-dd') && dayFichajes.some(f => !f.end_time);
 
-        totalActual += actual;
-        totalProjected += ((actual > 0 && !isTodayOngoing) ? actual : Math.max(actual, projectedMs));
+        totalActual += creditedActual;
+        totalProjected += ((creditedActual > 0 && !isTodayOngoing) ? creditedActual : Math.max(creditedActual, projectedMs));
         totalGoal += goal;
 
         return {
             date: day,
             dateStr: dStr,
-            actual,
+            actual: creditedActual,
             goal,
+            specialDay,
             projectionStr,
             projectedMs,
             dayFichajes,
@@ -381,6 +442,7 @@ const ProjectionPage = ({ fichajes, config, currentTime = new Date(), weeklyLeft
                                 <tr>
                                     <th style={{ width: '40px' }}></th>
                                     <th>Día</th>
+                                    <th>Tipo de día</th>
                                     <th>Realizado</th>
                                     <th>Previsto</th>
                                     <th>Meta</th>
@@ -406,6 +468,27 @@ const ProjectionPage = ({ fichajes, config, currentTime = new Date(), weeklyLeft
                                                 </div>
                                             </td>
                                             <td>
+                                                <select
+                                                    className="input-field"
+                                                    aria-label={`Tipo de día para ${format(day.date, 'EEEE d MMMM', { locale: es })}`}
+                                                    style={{
+                                                        margin: 0,
+                                                        padding: '4px 8px',
+                                                        width: '140px',
+                                                        fontSize: '0.8rem',
+                                                        backgroundColor: 'var(--bg-main)',
+                                                        color: 'var(--text-main)'
+                                                    }}
+                                                    value={day.specialDay}
+                                                    onChange={(e) => handleSpecialDayChange(day.dateStr, e.target.value)}
+                                                >
+                                                    <option value="">Normal</option>
+                                                    <option value="festivo">Festivo</option>
+                                                    <option value="vacaciones">Vacaciones</option>
+                                                    <option value="puente">Puente</option>
+                                                </select>
+                                            </td>
+                                            <td>
                                                 <span style={{
                                                     color: day.actual > 0 ? 'var(--success)' : 'var(--text-muted)',
                                                     fontWeight: day.actual > 0 ? 700 : 400
@@ -414,7 +497,11 @@ const ProjectionPage = ({ fichajes, config, currentTime = new Date(), weeklyLeft
                                                 </span>
                                             </td>
                                             <td>
-                                                {(day.actual > 0 && !day.isTodayOngoing) ? (
+                                                {day.specialDay ? (
+                                                    <div style={{ color: 'var(--success)', fontSize: '0.85rem', fontWeight: 600 }}>
+                                                        Jornada completa
+                                                    </div>
+                                                ) : (day.actual > 0 && !day.isTodayOngoing) ? (
                                                     <div style={{ opacity: 0.5, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                                                         <CheckCircle2 size={14} color="var(--success)" />
                                                         Hecho
@@ -439,7 +526,7 @@ const ProjectionPage = ({ fichajes, config, currentTime = new Date(), weeklyLeft
                                         </tr>
                                         {expandedDays[day.dateStr] && (day.dayFichajes.length > 0 || day.dayPlannedShifts.length > 0) && (
                                             <tr>
-                                                <td colSpan="5" style={{ padding: '0 0 10px 40px', border: 'none' }}>
+                                                <td colSpan="6" style={{ padding: '0 0 10px 40px', border: 'none' }}>
                                                     <div style={{
                                                         background: 'var(--glass-bg)',
                                                         borderRadius: '0 0 12px 12px',
@@ -515,7 +602,7 @@ const ProjectionPage = ({ fichajes, config, currentTime = new Date(), weeklyLeft
 
                     <div style={{ background: 'var(--glass-bg)', padding: '1.2rem', borderRadius: '16px', border: '1px solid var(--glass-border)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.8rem' }}>
-                            <span className="stat-label">Realizado real</span>
+                                                                    <span className="stat-label">Realizado computado</span>
                             <span style={{ fontWeight: 600 }}>{msToTime(totalActual)} / {msToTime(totalGoal)}</span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.8rem' }}>

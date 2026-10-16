@@ -1,16 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
+import bcrypt from 'bcryptjs';
 
 const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL || import.meta.env.SUPABASE_URL || '').trim();
-const supabaseSecretKey = (import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_SECRET_KEY || import.meta.env.SUPABASE_ANON_KEY || import.meta.env.SUPABASE_SECRET_KEY || '').trim();
+const supabaseSecretKey = (import.meta.env.VITE_SUPABASE_SECRET_KEY || import.meta.env.SUPABASE_SECRET_KEY || '').trim();
 
 const normalizedSecretKey = supabaseSecretKey.replace(/^['"]|['"]$/g, '').trim();
 
 export const supabase = supabaseUrl && normalizedSecretKey && normalizedSecretKey !== 'your_supabase_secret_key'
   ? createClient(supabaseUrl, normalizedSecretKey, {
-      db: { schema: 'jcf' },
       auth: {
-        persistSession: true,
-        autoRefreshToken: true
+        persistSession: false,
+        autoRefreshToken: false
       }
     })
   : null;
@@ -19,7 +19,7 @@ export const isSupabaseConfigured = Boolean(supabase);
 
 function ensureSupabase() {
   if (!supabase) {
-    throw new Error('No se ha configurado Supabase. Añade VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY en GitHub Actions y en la build.');
+    throw new Error('No se ha configurado Supabase. Añade VITE_SUPABASE_URL y VITE_SUPABASE_SECRET_KEY en GitHub Actions y en la build.');
   }
   return supabase;
 }
@@ -134,27 +134,15 @@ export async function saveWeeklyLeftover(payload) {
 
 export async function getProjectionDays() {
   const rows = await readRows('projection_days', {
-    select: 'date,hours,special_day'
+    select: 'date,hours'
   });
   return rows.reduce((acc, row) => {
-    acc.projections[row.date] = row.hours;
-    if (row.special_day) acc.specialDays[row.date] = row.special_day;
+    acc[row.date] = row.hours;
     return acc;
-  }, { projections: {}, specialDays: {} });
+  }, {});
 }
 
 export async function saveProjectionDay(payload) {
-  const { data, error } = await ensureSupabase()
-    .from('projection_days')
-    .upsert(payload, { onConflict: 'date' })
-    .select()
-    .single();
-
-  if (error) throw error;
-  return data;
-}
-
-export async function saveSpecialDay(payload) {
   const { data, error } = await ensureSupabase()
     .from('projection_days')
     .upsert(payload, { onConflict: 'date' })
@@ -188,109 +176,55 @@ export async function clearPlannedShifts() {
   return deleteRows('planned_shifts');
 }
 
-export async function checkUserPresencia(email) {
-  if (!email) return false;
-  const cleanEmail = email.trim().toLowerCase();
-  console.log('[checkUserPresencia] Verificando acceso para email:', cleanEmail);
-
-  try {
-    const client = ensureSupabase();
-    
-    // 1. Intentar consulta directa (el cliente ya tiene db.schema: 'jcf' configurado)
-    let { data, error } = await client.from('app_usuarios').select('*');
-
-    // 2. Fallback con .schema('jcf') en caso de que falle la consulta directa
-    if (error) {
-      console.warn('[checkUserPresencia] Error en consulta directa a app_usuarios, reintentando con .schema("jcf"):', error);
-      const fallback = client.schema ? await client.schema('jcf').from('app_usuarios').select('*') : { data: null, error };
-      data = fallback.data;
-      error = fallback.error;
-    }
-
-    if (error) {
-      console.error('[checkUserPresencia] Error al consultar la tabla app_usuarios:', error);
-      return false;
-    }
-
-    if (!data || !Array.isArray(data) || data.length === 0) {
-      console.warn('[checkUserPresencia] La tabla app_usuarios no devolvió registros o está vacía.');
-      return false;
-    }
-
-    console.log(`[checkUserPresencia] ${data.length} registros obtenidos de app_usuarios:`, data);
-
-    // Buscar coincidencia de email ignorando mayúsculas/minúsculas y espacios
-    const userRow = data.find(row => {
-      const rowEmail = String(row.email || row.mail || row.usuario || row.user_email || '').trim().toLowerCase();
-      return rowEmail === cleanEmail;
-    });
-
-    if (!userRow) {
-      console.warn(`[checkUserPresencia] No se encontró el email "${cleanEmail}" en app_usuarios.`);
-      return false;
-    }
-
-    console.log('[checkUserPresencia] Registro de usuario encontrado en app_usuarios:', userRow);
-
-    // Comprobar presencia (boolean true, string 'true'/'t'/'1'/'si'/'yes', número 1, etc.)
-    const rawPresencia = userRow.presencia ?? userRow.Presencia;
-    const isTrue = 
-      rawPresencia === true ||
-      rawPresencia === 1 ||
-      ['true', 't', '1', 'si', 'sí', 'yes'].includes(String(rawPresencia).trim().toLowerCase());
-
-    if (!isTrue) {
-      console.warn(`[checkUserPresencia] El usuario "${cleanEmail}" existe pero su campo presencia no es true (valor:`, rawPresencia, `)`);
-      return false;
-    }
-
-    console.log(`[checkUserPresencia] Acceso AUTORIZADO para "${cleanEmail}"`);
-    return true;
-  } catch (err) {
-    console.error('[checkUserPresencia] Excepción inesperada:', err);
-    return false;
-  }
-}
-
-export async function loginUser(email, password) {
-  const cleanEmail = (email || '').trim();
-  console.log('Intentando login para:', cleanEmail);
-
-  const { data, error } = await ensureSupabase().auth.signInWithPassword({
-    email: cleanEmail,
-    password
+export async function loginUser(nombre, password) {
+  const user = await readSingleRow('usuarios', {
+    eq: { column: 'nombre', value: nombre }
   });
 
-  if (error) {
-    console.error('Error en Supabase auth.signInWithPassword:', error);
-    throw new Error(error.message || 'Credenciales inválidas');
+  if (!user) {
+    throw new Error('Credenciales inválidas');
   }
 
-  const hasAccess = await checkUserPresencia(cleanEmail);
-  if (!hasAccess) {
-    console.error('Acceso denegado en app_usuarios: email no existe o presencia no es true');
-    try {
-      await ensureSupabase().auth.signOut();
-    } catch (e) {}
-    throw new Error('No tiene acceso a esta aplicación');
+  const passwordValid = await bcrypt.compare(password, user.password);
+  if (!passwordValid) {
+    throw new Error('Credenciales inválidas');
   }
 
   return {
     success: true,
     user: {
-      id: data.user.id,
-      nombre: data.user.email,
-      is_admin: true
+      id: user.id,
+      nombre: user.nombre,
+      is_admin: user.is_admin
     }
   };
 }
 
-export async function logoutUser() {
-  try {
-    const { error } = await ensureSupabase().auth.signOut();
-    if (error) console.warn('Error en auth.signOut:', error);
-  } catch (err) {
-    console.warn('Excepción en logoutUser:', err);
-  }
+export async function getUsuarios() {
+  return readRows('usuarios', {
+    select: 'id,nombre,apellido1,apellido2,is_admin',
+    orderBy: { column: 'id', ascending: true }
+  });
 }
 
+export async function createUsuario(payload) {
+  const hashedPassword = await bcrypt.hash(payload.password, 12);
+  return insertRow('usuarios', {
+    ...payload,
+    password: hashedPassword,
+    is_admin: Boolean(payload.is_admin)
+  });
+}
+
+export async function updateUsuario(id, payload) {
+  const updates = { ...payload, is_admin: Boolean(payload.is_admin) };
+  if (payload.password) {
+    updates.password = await bcrypt.hash(payload.password, 12);
+  }
+
+  return updateRow('usuarios', id, updates);
+}
+
+export async function deleteUsuario(id) {
+  return deleteRows('usuarios', { eq: { column: 'id', value: id } });
+}

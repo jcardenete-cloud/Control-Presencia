@@ -12,6 +12,9 @@ const normalizedPublicKey = supabasePublicKey.replace(/^['"]|['"]$/g, '').trim()
 
 export const supabase = supabaseUrl && normalizedPublicKey
   ? createClient(supabaseUrl, normalizedPublicKey, {
+      db: {
+        schema: 'jcf'
+      },
       auth: {
         persistSession: false,
         autoRefreshToken: false

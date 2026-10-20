@@ -375,12 +375,14 @@ function App() {
 
   daysOfThisWeek.forEach(d => {
     const dStr = format(d, 'yyyy-MM-dd');
-    const dayTotal = calculateDayTotal(dStr, fichajes, currentTime);
+    const actual = calculateDayTotal(dStr, fichajes, currentTime);
+    const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+    const goalForThatDay = isWeekend ? 0 : getDailyGoalForDate(d, config);
+    const dayTotal = projectionSpecialDays[dStr] ? Math.max(actual, goalForThatDay) : actual;
     weekTotalSoFar += dayTotal;
 
     if (dStr < todayStr && dStr >= format(daysOfThisWeek[0], 'yyyy-MM-dd')) {
-      if (dayTotal > 0 || [1, 2, 3, 4, 5].includes(d.getDay())) {
-        const goalForThatDay = getDailyGoalForDate(d, config);
+      if (dayTotal > 0 || !isWeekend) {
         previousDaysBalanceThisWeek += (dayTotal - goalForThatDay);
       }
     }
@@ -401,11 +403,13 @@ function App() {
     let weekGoal = 0;
     targetWeekDays.forEach(d => {
       const dStr = format(d, 'yyyy-MM-dd');
-      const dayTotal = calculateDayTotal(dStr, fichajes, currentTime);
-      weekTotal += dayTotal;
+      const actual = calculateDayTotal(dStr, fichajes, currentTime);
       const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+      const goal = isWeekend ? 0 : getDailyGoalForDate(d, config);
+      const dayTotal = projectionSpecialDays[dStr] ? Math.max(actual, goal) : actual;
+      weekTotal += dayTotal;
       if (!isWeekend) {
-        weekGoal += getDailyGoalForDate(d, config);
+        weekGoal += goal;
       }
     });
 
@@ -986,6 +990,7 @@ function App() {
             config={config}
             currentTime={currentTime}
             weeklyLeftovers={weeklyLeftovers}
+            onSpecialDaysChange={setProjectionSpecialDays}
           />
         )}
 

@@ -134,12 +134,15 @@ export async function saveWeeklyLeftover(payload) {
 
 export async function getProjectionDays() {
   const rows = await readRows('projection_days', {
-    select: 'date,hours'
+    select: 'date,hours,special_day'
   });
   return rows.reduce((acc, row) => {
-    acc[row.date] = row.hours;
+    acc.projections[row.date] = row.hours;
+    if (row.special_day) {
+      acc.specialDays[row.date] = row.special_day;
+    }
     return acc;
-  }, {});
+  }, { projections: {}, specialDays: {} });
 }
 
 export async function saveProjectionDay(payload) {
@@ -151,6 +154,10 @@ export async function saveProjectionDay(payload) {
 
   if (error) throw error;
   return data;
+}
+
+export async function saveSpecialDay(payload) {
+  return saveProjectionDay(payload);
 }
 
 export async function deleteProjectionDays() {

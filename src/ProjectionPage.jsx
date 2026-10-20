@@ -35,7 +35,7 @@ import {
     saveSpecialDay
 } from './lib/supabaseApi';
 
-const ProjectionPage = ({ fichajes, config, currentTime = new Date(), weeklyLeftovers = [] }) => {
+const ProjectionPage = ({ fichajes, config, currentTime = new Date(), weeklyLeftovers = [], onSpecialDaysChange }) => {
     const [selectedWeek, setSelectedWeek] = useState(new Date());
     const [projections, setProjections] = useState({}); // Total hours per day: { 'yyyy-MM-dd': 'HH:mm' }
     const [specialDays, setSpecialDays] = useState({});
@@ -120,6 +120,7 @@ const ProjectionPage = ({ fichajes, config, currentTime = new Date(), weeklyLeft
                 hours: projections[dateStr] || '00:00',
                 special_day: value || null
             });
+            onSpecialDaysChange?.(newSpecialDays);
         } catch (e) {
             setSpecialDays(specialDays);
             console.error('Error saving special day to DB', e);

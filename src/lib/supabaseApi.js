@@ -218,32 +218,35 @@ export async function checkUserPresencia(email) {
     ['true', 't', '1', 'si', 'sí', 'yes'].includes(String(presencia).trim().toLowerCase());
 }
 
-export async function loginUser(nombre, password) {
-  const user = await readSingleRow('usuarios', {
-    eq: { column: 'nombre', value: nombre }
+export async function loginUser(email, password) {
+  const cleanEmail = email.trim();
+  const { data, error } = await ensureSupabase().auth.signInWithPassword({
+    email: cleanEmail,
+    password
   });
 
-  if (!user) {
-    throw new Error('Credenciales inválidas');
+  if (error) {
+    throw new Error(error.message || 'Credenciales inválidas');
   }
 
-  const passwordValid = await bcrypt.compare(password, user.password);
-  if (!passwordValid) {
-    throw new Error('Credenciales inválidas');
+  const hasAccess = await checkUserPresencia(cleanEmail);
+  if (!hasAccess) {
+    await logoutUser();
+    throw new Error('No tiene acceso a esta aplicación');
   }
 
   return {
     success: true,
     user: {
-      id: user.id,
-      nombre: user.nombre,
-      is_admin: user.is_admin
+      id: data.user.id,
+      nombre: data.user.email,
+      is_admin: true
     }
   };
 }
 
 export async function getUsuarios() {
-  return readRows('usuarios', {
+  return readRows('app_usuarios', {
     select: 'id,nombre,apellido1,apellido2,is_admin',
     orderBy: { column: 'id', ascending: true }
   });
@@ -251,7 +254,7 @@ export async function getUsuarios() {
 
 export async function createUsuario(payload) {
   const hashedPassword = await bcrypt.hash(payload.password, 12);
-  return insertRow('usuarios', {
+  return insertRow('app_usuarios', {
     ...payload,
     password: hashedPassword,
     is_admin: Boolean(payload.is_admin)
@@ -264,9 +267,9 @@ export async function updateUsuario(id, payload) {
     updates.password = await bcrypt.hash(payload.password, 12);
   }
 
-  return updateRow('usuarios', id, updates);
+  return updateRow('app_usuarios', id, updates);
 }
 
 export async function deleteUsuario(id) {
-  return deleteRows('usuarios', { eq: { column: 'id', value: id } });
+  return deleteRows('app_usuarios', { eq: { column: 'id', value: id } });
 }

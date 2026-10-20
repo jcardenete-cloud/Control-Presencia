@@ -183,6 +183,34 @@ export async function clearPlannedShifts() {
   return deleteRows('planned_shifts');
 }
 
+export async function logoutUser() {
+  const { error } = await ensureSupabase().auth.signOut();
+  if (error) throw error;
+}
+
+export async function checkUserPresencia(email) {
+  if (!email) return false;
+
+  const cleanEmail = email.trim().toLowerCase();
+  const client = ensureSupabase();
+  const { data, error } = await client.schema('jcf').from('app_usuarios').select('*');
+
+  if (error) {
+    console.error('Error consultando jcf.app_usuarios:', error);
+    return false;
+  }
+
+  const user = data?.find(row => {
+    const rowEmail = String(row.email || row.mail || row.usuario || row.user_email || '').trim().toLowerCase();
+    return rowEmail === cleanEmail;
+  });
+
+  if (!user) return false;
+  const presencia = user.presencia ?? user.Presencia;
+  return presencia === true || presencia === 1 ||
+    ['true', 't', '1', 'si', 'sí', 'yes'].includes(String(presencia).trim().toLowerCase());
+}
+
 export async function loginUser(nombre, password) {
   const user = await readSingleRow('usuarios', {
     eq: { column: 'nombre', value: nombre }

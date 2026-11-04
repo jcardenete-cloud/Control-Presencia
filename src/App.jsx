@@ -108,7 +108,7 @@ function App() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [error, setError] = useState(null);
   const [theme, setTheme] = useState('outlook');
-  const [projectionViewMode, setProjectionViewMode] = useState(() =>
+  const [viewMode, setViewMode] = useState(() =>
     localStorage.getItem('projectionViewMode') === 'corporate' ? 'corporate' : 'cards'
   );
   const [editingFichaje, setEditingFichaje] = useState(null);
@@ -119,8 +119,8 @@ function App() {
   const [showCloseWeekModal, setShowCloseWeekModal] = useState(false);
   const [closeWeekDate, setCloseWeekDate] = useState(format(new Date(), 'yyyy-MM-dd'));
 
-  const handleProjectionViewModeChange = (mode) => {
-    setProjectionViewMode(mode);
+  const handleViewModeChange = (mode) => {
+    setViewMode(mode);
     localStorage.setItem('projectionViewMode', mode);
   };
 
@@ -136,6 +136,10 @@ function App() {
 
     localStorage.setItem('theme', theme);
   }, [theme]);
+
+  useEffect(() => {
+    document.body.classList.toggle('mode-corporate', viewMode === 'corporate');
+  }, [viewMode]);
 
   // handleLogout function to clean Supabase session and state
   const handleLogout = async () => {
@@ -609,6 +613,20 @@ function App() {
 
         </div>
 
+        <div className="sidebar-view-control">
+          <label htmlFor="app-view-mode">Modo de visualización</label>
+          <select
+            id="app-view-mode"
+            className="input-field"
+            aria-label="Modo de visualización de la aplicación"
+            value={viewMode}
+            onChange={(e) => handleViewModeChange(e.target.value)}
+          >
+            <option value="cards">Tarjetas</option>
+            <option value="corporate">Corporativo</option>
+          </select>
+        </div>
+
         <div className="sidebar-footer">
 
           <button className="sidebar-action-btn" onClick={() => setShowSettings(true)}>
@@ -623,7 +641,7 @@ function App() {
       </nav>
 
       <main className="main-content animate-fade-in" style={{ paddingBottom: '5rem' }}>
-        <header className="app-page-header" style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <h1 style={{ margin: 0, fontSize: '1.75rem' }}>
               {activeTab === 'today' && 'Panel de Hoy'}
@@ -640,18 +658,6 @@ function App() {
               {activeTab === 'users' && 'Gestión de usuarios de la aplicación'}
             </p>
           </div>
-          <label className="projection-view-selector app-view-selector">
-            <span>Vista de planificación</span>
-            <select
-              className="input-field"
-              aria-label="Modo de visualización de la planificación"
-              value={projectionViewMode}
-              onChange={(e) => handleProjectionViewModeChange(e.target.value)}
-            >
-              <option value="cards">Tarjetas</option>
-              <option value="corporate">Corporativo</option>
-            </select>
-          </label>
         </header>
 
         {error && (
@@ -1011,7 +1017,6 @@ function App() {
             currentTime={currentTime}
             weeklyLeftovers={weeklyLeftovers}
             onSpecialDaysChange={setProjectionSpecialDays}
-            viewMode={projectionViewMode}
           />
         )}
 

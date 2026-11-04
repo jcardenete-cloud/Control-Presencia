@@ -35,7 +35,7 @@ import {
     saveSpecialDay
 } from './lib/supabaseApi';
 
-const ProjectionPage = ({ fichajes, config, currentTime = new Date(), weeklyLeftovers = [], onSpecialDaysChange, viewMode = 'cards' }) => {
+const ProjectionPage = ({ fichajes, config, currentTime = new Date(), weeklyLeftovers = [], onSpecialDaysChange }) => {
     const [selectedWeek, setSelectedWeek] = useState(new Date());
     const [projections, setProjections] = useState({}); // Total hours per day: { 'yyyy-MM-dd': 'HH:mm' }
     const [specialDays, setSpecialDays] = useState({});
@@ -339,7 +339,7 @@ const ProjectionPage = ({ fichajes, config, currentTime = new Date(), weeklyLeft
     }
 
     return (
-        <div className={`projection-page animate-fade-in ${viewMode === 'corporate' ? 'projection-page--corporate' : ''}`}>
+        <div className="projection-page animate-fade-in">
             {/* Header / Week Selection */}
             <div className="glass-card projection-controls" style={{ marginBottom: '2rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>

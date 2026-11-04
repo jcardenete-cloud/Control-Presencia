@@ -108,9 +108,6 @@ function App() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [error, setError] = useState(null);
   const [theme, setTheme] = useState('outlook');
-  const [viewMode, setViewMode] = useState(() =>
-    localStorage.getItem('projectionViewMode') === 'corporate' ? 'corporate' : 'cards'
-  );
   const [editingFichaje, setEditingFichaje] = useState(null);
   const [editStartTime, setEditStartTime] = useState('');
   const [editEndTime, setEditEndTime] = useState('');
@@ -118,11 +115,6 @@ function App() {
   const [isForcingNewEntry, setIsForcingNewEntry] = useState(false);
   const [showCloseWeekModal, setShowCloseWeekModal] = useState(false);
   const [closeWeekDate, setCloseWeekDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-
-  const handleViewModeChange = (mode) => {
-    setViewMode(mode);
-    localStorage.setItem('projectionViewMode', mode);
-  };
 
   // Apply theme to body
   useEffect(() => {
@@ -138,8 +130,8 @@ function App() {
   }, [theme]);
 
   useEffect(() => {
-    document.body.classList.toggle('mode-corporate', viewMode === 'corporate');
-  }, [viewMode]);
+    document.body.classList.add('mode-corporate');
+  }, []);
 
   // handleLogout function to clean Supabase session and state
   const handleLogout = async () => {
@@ -611,20 +603,6 @@ function App() {
             <span>Mis Datos Tragsanet</span>
           </button>
 
-        </div>
-
-        <div className="sidebar-view-control">
-          <label htmlFor="app-view-mode">Modo de visualización</label>
-          <select
-            id="app-view-mode"
-            className="input-field"
-            aria-label="Modo de visualización de la aplicación"
-            value={viewMode}
-            onChange={(e) => handleViewModeChange(e.target.value)}
-          >
-            <option value="cards">Tarjetas</option>
-            <option value="corporate">Corporativo</option>
-          </select>
         </div>
 
         <div className="sidebar-footer">

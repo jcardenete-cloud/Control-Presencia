@@ -214,25 +214,6 @@ body.mode-corporate {
   border-top: 1px solid var(--glass-border);
 }
 
-.sidebar-view-control {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  margin-top: 1rem;
-  padding: 0.75rem;
-  border: 1px solid var(--glass-border);
-  border-radius: 12px;
-  color: var(--text-muted);
-  font-size: 0.8rem;
-}
-
-.sidebar-view-control .input-field {
-  margin: 0;
-  padding: 0.55rem 0.7rem;
-  background: var(--bg-main);
-  color: var(--text-main);
-}
-
 .mode-corporate .sidebar {
   background: #ffffff;
   backdrop-filter: none;

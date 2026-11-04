@@ -510,6 +510,100 @@ td {
   color: var(--primary);
 }
 
+.projection-view-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.projection-view-selector .input-field {
+  width: auto;
+  min-width: 125px;
+  margin: 0;
+  padding: 0.5rem 0.65rem;
+  font-size: 0.9rem;
+}
+
+.projection-page--corporate {
+  --primary: #176da0;
+  --primary-hover: #075783;
+  --bg-card: #ffffff;
+  --text-main: #214b67;
+  --text-muted: #547185;
+  --glass-border: #c9dce8;
+  --glass-bg: #eaf3f8;
+  --primary-bg: #dcecf5;
+  color: var(--text-main);
+}
+
+.projection-page--corporate .glass-card {
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(20, 72, 105, 0.1);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  padding: 1rem;
+}
+
+.projection-page--corporate .projection-controls {
+  background: #eaf3f8;
+}
+
+.projection-page--corporate .projection-controls h3,
+.projection-page--corporate .projection-shift-form > h4,
+.projection-page--corporate .projection-daily-card > h4,
+.projection-page--corporate .projection-summary-card > h4 {
+  background: #629ec2;
+  color: #ffffff;
+  border-radius: 5px;
+  padding: 0.55rem 0.75rem;
+  margin: -1rem -1rem 1rem;
+  font-size: 0.95rem;
+  letter-spacing: 0.01em;
+}
+
+.projection-page--corporate .projection-controls h3 .text-summer {
+  color: #ffffff;
+}
+
+.projection-page--corporate .subtitle {
+  color: var(--text-muted);
+}
+
+.projection-page--corporate .input-field,
+.projection-page--corporate .btn-icon,
+.projection-page--corporate .btn-primary {
+  border-radius: 5px;
+}
+
+.projection-page--corporate table {
+  border-spacing: 0 !important;
+}
+
+.projection-page--corporate th {
+  color: #ffffff;
+  background: #629ec2;
+  border: 1px solid #629ec2;
+  padding: 0.65rem;
+}
+
+.projection-page--corporate td {
+  border-bottom: 1px solid var(--glass-border);
+  padding: 0.65rem;
+}
+
+.projection-page--corporate tbody tr {
+  background: var(--glass-bg) !important;
+}
+
+.projection-page--corporate .projection-view-selector {
+  color: var(--text-main);
+}
+
 /* Tabs */
 .tab-btn {
   background: var(--glass-bg);

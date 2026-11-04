@@ -42,6 +42,9 @@ const ProjectionPage = ({ fichajes, config, currentTime = new Date(), weeklyLeft
     const [plannedShifts, setPlannedShifts] = useState([]); // Array of { id, date, start_time, end_time }
     const [expandedDays, setExpandedDays] = useState({});
     const [loading, setLoading] = useState(true);
+    const [viewMode, setViewMode] = useState(() =>
+        localStorage.getItem('projectionViewMode') === 'corporate' ? 'corporate' : 'cards'
+    );
 
     const [newShift, setNewShift] = useState({ date: '', start: '08:00', end: '15:00' });
 
@@ -159,6 +162,11 @@ const ProjectionPage = ({ fichajes, config, currentTime = new Date(), weeklyLeft
 
     const toggleExpand = (dateStr) => {
         setExpandedDays(prev => ({ ...prev, [dateStr]: !prev[dateStr] }));
+    };
+
+    const handleViewModeChange = (mode) => {
+        setViewMode(mode);
+        localStorage.setItem('projectionViewMode', mode);
     };
 
     const clearAll = async () => {
@@ -340,9 +348,9 @@ const ProjectionPage = ({ fichajes, config, currentTime = new Date(), weeklyLeft
     }
 
     return (
-        <div className="animate-fade-in">
+        <div className={`projection-page animate-fade-in ${viewMode === 'corporate' ? 'projection-page--corporate' : ''}`}>
             {/* Header / Week Selection */}
-            <div className="glass-card" style={{ marginBottom: '2rem' }}>
+            <div className="glass-card projection-controls" style={{ marginBottom: '2rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
                     <div>
                         <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -351,6 +359,18 @@ const ProjectionPage = ({ fichajes, config, currentTime = new Date(), weeklyLeft
                         <p className="subtitle" style={{ margin: 0 }}>Crea turnos previstos para calcular tu saldo</p>
                     </div>
                     <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                        <label className="projection-view-selector">
+                            <span>Visualización</span>
+                            <select
+                                className="input-field"
+                                aria-label="Modo de visualización"
+                                value={viewMode}
+                                onChange={(e) => handleViewModeChange(e.target.value)}
+                            >
+                                <option value="cards">Tarjetas</option>
+                                <option value="corporate">Corporativo</option>
+                            </select>
+                        </label>
                         <button className="btn-icon" onClick={() => setSelectedWeek(addDays(selectedWeek, -7))}>
                             <ChevronLeft size={20} />
                         </button>
@@ -375,7 +395,7 @@ const ProjectionPage = ({ fichajes, config, currentTime = new Date(), weeklyLeft
             </div>
 
             {/* Shift Creator */}
-            <div className="glass-card" style={{ marginBottom: '2rem', padding: '1.5rem' }}>
+            <div className="glass-card projection-shift-form" style={{ marginBottom: '2rem', padding: '1.5rem' }}>
                 <h4 style={{ marginBottom: '1rem', fontSize: '0.9rem', opacity: 0.7, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     Añadir Turno Previsto
                 </h4>
@@ -433,7 +453,7 @@ const ProjectionPage = ({ fichajes, config, currentTime = new Date(), weeklyLeft
 
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', alignItems: 'flex-start' }}>
                 {/* Daily List */}
-                <div className="glass-card" style={{ flex: '1.6 1 500px' }}>
+                <div className="glass-card projection-daily-card" style={{ flex: '1.6 1 500px' }}>
                     <h4 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <Calendar size={18} /> Planning Semanal
                     </h4>
@@ -596,7 +616,7 @@ const ProjectionPage = ({ fichajes, config, currentTime = new Date(), weeklyLeft
                 </div>
 
                 {/* Summary View */}
-                <div className="glass-card" style={{ flex: '1 1 350px', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <div className="glass-card projection-summary-card" style={{ flex: '1 1 350px', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                     <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <Clock size={18} /> Resumen de Proyección
                     </h4>

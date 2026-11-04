@@ -527,6 +527,19 @@ td {
   font-size: 0.9rem;
 }
 
+.app-view-selector {
+  flex-shrink: 0;
+  padding: 0.5rem 0.75rem;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+}
+
+.app-view-selector .input-field {
+  color: var(--text-main);
+  background-color: var(--bg-card);
+}
+
 .projection-page--corporate {
   --primary: #176da0;
   --primary-hover: #075783;
@@ -602,6 +615,18 @@ td {
 
 .projection-page--corporate .projection-view-selector {
   color: var(--text-main);
+}
+
+@media (max-width: 768px) {
+  .app-page-header {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .app-view-selector {
+    width: 100%;
+    justify-content: space-between;
+  }
 }
 
 /* Tabs */

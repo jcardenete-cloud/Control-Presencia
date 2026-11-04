@@ -108,6 +108,9 @@ function App() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [error, setError] = useState(null);
   const [theme, setTheme] = useState('outlook');
+  const [projectionViewMode, setProjectionViewMode] = useState(() =>
+    localStorage.getItem('projectionViewMode') === 'corporate' ? 'corporate' : 'cards'
+  );
   const [editingFichaje, setEditingFichaje] = useState(null);
   const [editStartTime, setEditStartTime] = useState('');
   const [editEndTime, setEditEndTime] = useState('');
@@ -115,6 +118,11 @@ function App() {
   const [isForcingNewEntry, setIsForcingNewEntry] = useState(false);
   const [showCloseWeekModal, setShowCloseWeekModal] = useState(false);
   const [closeWeekDate, setCloseWeekDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+
+  const handleProjectionViewModeChange = (mode) => {
+    setProjectionViewMode(mode);
+    localStorage.setItem('projectionViewMode', mode);
+  };
 
   // Apply theme to body
   useEffect(() => {
@@ -615,7 +623,7 @@ function App() {
       </nav>
 
       <main className="main-content animate-fade-in" style={{ paddingBottom: '5rem' }}>
-        <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <header className="app-page-header" style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <h1 style={{ margin: 0, fontSize: '1.75rem' }}>
               {activeTab === 'today' && 'Panel de Hoy'}
@@ -632,6 +640,18 @@ function App() {
               {activeTab === 'users' && 'Gestión de usuarios de la aplicación'}
             </p>
           </div>
+          <label className="projection-view-selector app-view-selector">
+            <span>Vista de planificación</span>
+            <select
+              className="input-field"
+              aria-label="Modo de visualización de la planificación"
+              value={projectionViewMode}
+              onChange={(e) => handleProjectionViewModeChange(e.target.value)}
+            >
+              <option value="cards">Tarjetas</option>
+              <option value="corporate">Corporativo</option>
+            </select>
+          </label>
         </header>
 
         {error && (
@@ -991,6 +1011,7 @@ function App() {
             currentTime={currentTime}
             weeklyLeftovers={weeklyLeftovers}
             onSpecialDaysChange={setProjectionSpecialDays}
+            viewMode={projectionViewMode}
           />
         )}
 

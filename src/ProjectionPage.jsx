@@ -35,17 +35,13 @@ import {
     saveSpecialDay
 } from './lib/supabaseApi';
 
-const ProjectionPage = ({ fichajes, config, currentTime = new Date(), weeklyLeftovers = [], onSpecialDaysChange }) => {
+const ProjectionPage = ({ fichajes, config, currentTime = new Date(), weeklyLeftovers = [], onSpecialDaysChange, viewMode = 'cards' }) => {
     const [selectedWeek, setSelectedWeek] = useState(new Date());
     const [projections, setProjections] = useState({}); // Total hours per day: { 'yyyy-MM-dd': 'HH:mm' }
     const [specialDays, setSpecialDays] = useState({});
     const [plannedShifts, setPlannedShifts] = useState([]); // Array of { id, date, start_time, end_time }
     const [expandedDays, setExpandedDays] = useState({});
     const [loading, setLoading] = useState(true);
-    const [viewMode, setViewMode] = useState(() =>
-        localStorage.getItem('projectionViewMode') === 'corporate' ? 'corporate' : 'cards'
-    );
-
     const [newShift, setNewShift] = useState({ date: '', start: '08:00', end: '15:00' });
 
     // Load data from Supabase
@@ -162,11 +158,6 @@ const ProjectionPage = ({ fichajes, config, currentTime = new Date(), weeklyLeft
 
     const toggleExpand = (dateStr) => {
         setExpandedDays(prev => ({ ...prev, [dateStr]: !prev[dateStr] }));
-    };
-
-    const handleViewModeChange = (mode) => {
-        setViewMode(mode);
-        localStorage.setItem('projectionViewMode', mode);
     };
 
     const clearAll = async () => {
@@ -359,18 +350,6 @@ const ProjectionPage = ({ fichajes, config, currentTime = new Date(), weeklyLeft
                         <p className="subtitle" style={{ margin: 0 }}>Crea turnos previstos para calcular tu saldo</p>
                     </div>
                     <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                        <label className="projection-view-selector">
-                            <span>Visualización</span>
-                            <select
-                                className="input-field"
-                                aria-label="Modo de visualización"
-                                value={viewMode}
-                                onChange={(e) => handleViewModeChange(e.target.value)}
-                            >
-                                <option value="cards">Tarjetas</option>
-                                <option value="corporate">Corporativo</option>
-                            </select>
-                        </label>
                         <button className="btn-icon" onClick={() => setSelectedWeek(addDays(selectedWeek, -7))}>
                             <ChevronLeft size={20} />
                         </button>

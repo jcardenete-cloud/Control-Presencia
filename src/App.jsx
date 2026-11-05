@@ -618,7 +618,13 @@ function App() {
         </div>
       </nav>
 
-      <main className="main-content animate-fade-in" style={{ paddingBottom: '5rem' }}>
+      <main
+        className="main-content animate-fade-in"
+        style={{
+          paddingBottom: '5rem',
+          ...(activeTab === 'tragsanet' ? { maxWidth: 'none', margin: 0, padding: '1rem' } : {})
+        }}
+      >
         <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <h1 style={{ margin: 0, fontSize: '1.75rem' }}>

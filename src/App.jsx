@@ -1012,7 +1012,7 @@ function App() {
                 <span>Abrir en nueva pestaña</span>
               </a>
             </div>
-            <div className="glass-card" style={{ width: '100%', padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: '800px', maxHeight: '920px' }}>
+            <div className="glass-card" style={{ width: '100%', padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: '800px', maxHeight: '890px' }}>
               <iframe
                 src="https://extranet.tragsa.es/TRAGSANET/SistemasInformacion/Aplicacion/Utilidades/DatosUsuario.aspx?Tab=4"
                 style={{ flex: 1, width: '100%', height: '100%', border: 'none', background: 'white' }}

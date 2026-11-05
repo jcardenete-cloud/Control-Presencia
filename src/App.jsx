@@ -999,7 +999,7 @@ function App() {
         )}
 
         {activeTab === 'tragsanet' && (
-          <div className="animate-fade-in" style={{ width: '90%', maxWidth: '1400px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div className="animate-fade-in" style={{ width: '88%', maxWidth: '1100px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
               <a
                 href="https://extranet.tragsa.es/TRAGSANET/SistemasInformacion/Aplicacion/Utilidades/DatosUsuario.aspx?Tab=4"
@@ -1012,7 +1012,7 @@ function App() {
                 <span>Abrir en nueva pestaña</span>
               </a>
             </div>
-            <div className="glass-card" style={{ width: '100%', padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: '718px', maxHeight: '840px' }}>
+            <div className="glass-card" style={{ width: '100%', padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: '800px', maxHeight: '920px' }}>
               <iframe
                 src="https://extranet.tragsa.es/TRAGSANET/SistemasInformacion/Aplicacion/Utilidades/DatosUsuario.aspx?Tab=4"
                 style={{ flex: 1, width: '100%', height: '100%', border: 'none', background: 'white' }}

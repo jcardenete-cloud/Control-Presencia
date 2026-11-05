@@ -999,7 +999,7 @@ function App() {
         )}
 
         {activeTab === 'tragsanet' && (
-          <div className="animate-fade-in" style={{ width: '88%', maxWidth: '1400px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div className="animate-fade-in" style={{ width: '90%', maxWidth: '1400px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
               <a
                 href="https://extranet.tragsa.es/TRAGSANET/SistemasInformacion/Aplicacion/Utilidades/DatosUsuario.aspx?Tab=4"

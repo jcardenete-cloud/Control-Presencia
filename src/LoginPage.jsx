@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Fingerprint, LogIn, AlertCircle } from 'lucide-react';
+import { Fingerprint, LogIn, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { loginUser } from './lib/supabaseApi';
 
 export default function LoginPage({ onLogin }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
 
@@ -58,14 +59,25 @@ export default function LoginPage({ onLogin }) {
                     </div>
                     <div>
                         <label className="stat-label" style={{ display: 'block', marginBottom: '0.5rem' }}>Contraseña</label>
-                        <input
-                            type="password"
-                            required
-                            className="input-field"
-                            placeholder="Introduce tu contraseña"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
+                        <div className="password-input-wrapper">
+                            <input
+                                type={showPassword ? 'text' : 'password'}
+                                required
+                                className="input-field"
+                                placeholder="Introduce tu contraseña"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                            />
+                            <button
+                                type="button"
+                                className="password-visibility-toggle"
+                                aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                                aria-pressed={showPassword}
+                                onClick={() => setShowPassword((visible) => !visible)}
+                            >
+                                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
+                        </div>
                     </div>
                     <button type="submit" className="btn-primary" disabled={loading} style={{ width: '100%', display: 'flex', justifyContent: 'center', gap: '0.5rem', padding: '0.8rem', marginTop: '0.5rem' }}>
                         <LogIn size={20} />
